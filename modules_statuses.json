@@ -1,0 +1,7 @@
+{
+    "Auth": true,
+    "Roles": true,
+    "Setup": true,
+    "Inventory": true,
+    "Reception": true
+}

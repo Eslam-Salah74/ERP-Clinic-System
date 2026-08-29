@@ -1,0 +1,294 @@
+{
+    "info": {
+        "_postman_id": "a9b8c7d6-e5f4-3210-9876-54321fedcba0",
+        "name": "Clinic System ERP - Ultimate Complete Collection",
+        "description": "الملف الشامل والنهائي لكل مسارات وعمليات السيستم الطبي (Auth, Setup, Inventory, Reception, Shifts, Invoices, Patients, Appointments)",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "1. Auth & Staff Management",
+            "item": [
+                {
+                    "name": "Login",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "var jsonData = pm.response.json();",
+                                    "if(jsonData.data && jsonData.data.access_token){",
+                                    "    pm.collectionVariables.set(\"token\", jsonData.data.access_token);",
+                                    "} else if (jsonData.access_token) {",
+                                    "    pm.collectionVariables.set(\"token\", jsonData.access_token);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Accept", "value": "application/json", "type": "text"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"phone\": \"01110731636\",\n    \"password\": \"257411\"\n}",
+                            "options": {"raw": {"language": "json"}}
+                        },
+                        "url": {"raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"]}
+                    }
+                },
+                {
+                    "name": "Get Me Profile",
+                    "request": {
+                        "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]},
+                        "method": "GET",
+                        "header": [{"key": "Accept", "value": "application/json", "type": "text"}],
+                        "url": {"raw": "{{base_url}}/auth/me", "host": ["{{base_url}}"], "path": ["auth", "me"]}
+                    }
+                },
+                {
+                    "name": "Logout",
+                    "request": {
+                        "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]},
+                        "method": "POST",
+                        "header": [{"key": "Accept", "value": "application/json", "type": "text"}],
+                        "url": {"raw": "{{base_url}}/auth/logout", "host": ["{{base_url}}"], "path": ["auth", "logout"]}
+                    }
+                },
+                {
+                    "name": "Roles (Index)",
+                    "request": {
+                        "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]},
+                        "method": "GET",
+                        "header": [{"key": "Accept", "value": "application/json", "type": "text"}],
+                        "url": {"raw": "{{base_url}}/auth/roles", "host": ["{{base_url}}"], "path": ["auth", "roles"]}
+                    }
+                },
+                {
+                    "name": "Roles (Store)",
+                    "request": {
+                        "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]},
+                        "method": "POST",
+                        "header": [{"key": "Accept", "value": "application/json", "type": "text"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"مستقبل\",\n    \"permissions\": [\"read invoices\", \"create invoices\"]\n}",
+                            "options": {"raw": {"language": "json"}}
+                        },
+                        "url": {"raw": "{{base_url}}/auth/roles", "host": ["{{base_url}}"], "path": ["auth", "roles"]}
+                    }
+                },
+                {
+                    "name": "Roles (Show)",
+                    "request": {
+                        "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]},
+                        "method": "GET",
+                        "header": [{"key": "Accept", "value": "application/json", "type": "text"}],
+                        "url": {"raw": "{{base_url}}/auth/roles/1", "host": ["{{base_url}}"], "path": ["auth", "roles", "1"]}
+                    }
+                },
+                {
+                    "name": "Roles (Update)",
+                    "request": {
+                        "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]},
+                        "method": "PUT",
+                        "header": [{"key": "Accept", "value": "application/json", "type": "text"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"موظف استقبال معدل\"\n}",
+                            "options": {"raw": {"language": "json"}}
+                        },
+                        "url": {"raw": "{{base_url}}/auth/roles/1", "host": ["{{base_url}}"], "path": ["auth", "roles", "1"]}
+                    }
+                },
+                {
+                    "name": "Roles (Delete)",
+                    "request": {
+                        "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]},
+                        "method": "DELETE",
+                        "header": [{"key": "Accept", "value": "application/json", "type": "text"}],
+                        "url": {"raw": "{{base_url}}/auth/roles/1", "host": ["{{base_url}}"], "path": ["auth", "roles", "1"]}
+                    }
+                },
+                {
+                    "name": "Staff (Index)",
+                    "request": {
+                        "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]},
+                        "method": "GET",
+                        "header": [{"key": "Accept", "value": "application/json", "type": "text"}],
+                        "url": {"raw": "{{base_url}}/auth/staff", "host": ["{{base_url}}"], "path": ["auth", "staff"]}
+                    }
+                },
+                {
+                    "name": "Staff (Store)",
+                    "request": {
+                        "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]},
+                        "method": "POST",
+                        "header": [{"key": "Accept", "value": "application/json", "type": "text"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"محمد أحمد\",\n    \"phone\": \"01000000000\",\n    \"email\": \"mohamed@clinic.com\",\n    \"password\": \"12345678\",\n    \"role_id\": 1\n}",
+                            "options": {"raw": {"language": "json"}}
+                        },
+                        "url": {"raw": "{{base_url}}/auth/staff", "host": ["{{base_url}}"], "path": ["auth", "staff"]}
+                    }
+                },
+                {
+                    "name": "Staff (Show)",
+                    "request": {
+                        "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]},
+                        "method": "GET",
+                        "header": [{"key": "Accept", "value": "application/json", "type": "text"}],
+                        "url": {"raw": "{{base_url}}/auth/staff/1", "host": ["{{base_url}}"], "path": ["auth", "staff", "1"]}
+                    }
+                },
+                {
+                    "name": "Staff (Update)",
+                    "request": {
+                        "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]},
+                        "method": "PUT",
+                        "header": [{"key": "Accept", "value": "application/json", "type": "text"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"محمد أحمد معدل\"\n}",
+                            "options": {"raw": {"language": "json"}}
+                        },
+                        "url": {"raw": "{{base_url}}/auth/staff/1", "host": ["{{base_url}}"], "path": ["auth", "staff", "1"]}
+                    }
+                },
+                {
+                    "name": "Staff (Delete)",
+                    "request": {
+                        "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]},
+                        "method": "DELETE",
+                        "header": [{"key": "Accept", "value": "application/json", "type": "text"}],
+                        "url": {"raw": "{{base_url}}/auth/staff/1", "host": ["{{base_url}}"], "path": ["auth", "staff", "1"]}
+                    }
+                }
+            ]
+        },
+        {
+            "name": "2. Setup Module (الإعدادات، الخدمات، الأقسام)",
+            "item": [
+                {
+                    "name": "Departments (CRUD)",
+                    "item": [
+                        {"name": "Get Departments", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "GET", "url": {"raw": "{{base_url}}/departments", "host": ["{{base_url}}"], "path": ["departments"]}}},
+                        {"name": "Create Department", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "POST", "body": {"mode": "raw", "raw": "{\"name\": \"قسم الباطنة\"}", "options": {"raw": {"language": "json"}}}, "url": {"raw": "{{base_url}}/departments", "host": ["{{base_url}}"], "path": ["departments"]}}},
+                        {"name": "Show Department", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "GET", "url": {"raw": "{{base_url}}/departments/1", "host": ["{{base_url}}"], "path": ["departments", "1"]}}},
+                        {"name": "Update Department", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "PUT", "body": {"mode": "raw", "raw": "{\"name\": \"الباطنة العامة\"}", "options": {"raw": {"language": "json"}}}, "url": {"raw": "{{base_url}}/departments/1", "host": ["{{base_url}}"], "path": ["departments", "1"]}}},
+                        {"name": "Delete Department", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "DELETE", "url": {"raw": "{{base_url}}/departments/1", "host": ["{{base_url}}"], "path": ["departments", "1"]}}}
+                    ]
+                },
+                {
+                    "name": "Services (CRUD)",
+                    "item": [
+                        {"name": "Get Services", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "GET", "url": {"raw": "{{base_url}}/services", "host": ["{{base_url}}"], "path": ["services"]}}},
+                        {"name": "Create Service", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "POST", "body": {"mode": "raw", "raw": "{\"name\": \"كشف عادى\", \"price\": 300, \"department_id\": 1}", "options": {"raw": {"language": "json"}}}, "url": {"raw": "{{base_url}}/services", "host": ["{{base_url}}"], "path": ["services"]}}},
+                        {"name": "Show Service", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "GET", "url": {"raw": "{{base_url}}/services/1", "host": ["{{base_url}}"], "path": ["services", "1"]}}},
+                        {"name": "Update Service", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "PUT", "body": {"mode": "raw", "raw": "{\"price\": 350}", "options": {"raw": {"language": "json"}}}, "url": {"raw": "{{base_url}}/services/1", "host": ["{{base_url}}"], "path": ["services", "1"]}}},
+                        {"name": "Delete Service", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "DELETE", "url": {"raw": "{{base_url}}/services/1", "host": ["{{base_url}}"], "path": ["services", "1"]}}}
+                    ]
+                },
+                {
+                    "name": "Settings (CRUD)",
+                    "item": [
+                        {"name": "Get Settings", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "GET", "url": {"raw": "{{base_url}}/settings", "host": ["{{base_url}}"], "path": ["settings"]}}},
+                        {"name": "Update Setting", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "PUT", "body": {"mode": "raw", "raw": "{\"value\": \"30\"}", "options": {"raw": {"language": "json"}}}, "url": {"raw": "{{base_url}}/settings/1", "host": ["{{base_url}}"], "path": ["settings", "1"]}}}
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "3. Inventory Module (المخازن والمشتريات)",
+            "item": [
+                {
+                    "name": "Suppliers (CRUD)",
+                    "item": [
+                        {"name": "Get Suppliers", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "GET", "url": {"raw": "{{base_url}}/suppliers", "host": ["{{base_url}}"], "path": ["suppliers"]}}},
+                        {"name": "Create Supplier", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "POST", "body": {"mode": "raw", "raw": "{\"name\": \"شركة الأدوية المتحدة\", \"phone\": \"01234567890\"}", "options": {"raw": {"language": "json"}}}, "url": {"raw": "{{base_url}}/suppliers", "host": ["{{base_url}}"], "path": ["suppliers"]}}},
+                        {"name": "Show Supplier", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "GET", "url": {"raw": "{{base_url}}/suppliers/1", "host": ["{{base_url}}"], "path": ["suppliers", "1"]}}},
+                        {"name": "Update Supplier", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "PUT", "body": {"mode": "raw", "raw": "{\"name\": \"شركة الأدوية المصرية\"}", "options": {"raw": {"language": "json"}}}, "url": {"raw": "{{base_url}}/suppliers/1", "host": ["{{base_url}}"], "path": ["suppliers", "1"]}}},
+                        {"name": "Delete Supplier", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "DELETE", "url": {"raw": "{{base_url}}/suppliers/1", "host": ["{{base_url}}"], "path": ["suppliers", "1"]}}}
+                    ]
+                },
+                {
+                    "name": "Items (CRUD)",
+                    "item": [
+                        {"name": "Get Items", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "GET", "url": {"raw": "{{base_url}}/items", "host": ["{{base_url}}"], "path": ["items"]}}},
+                        {"name": "Create Item", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "POST", "body": {"mode": "raw", "raw": "{\"name\": \"بنادول إكسترا\", \"current_stock\": 100, \"purchase_price\": 40, \"sale_price\": 55}", "options": {"raw": {"language": "json"}}}, "url": {"raw": "{{base_url}}/items", "host": ["{{base_url}}"], "path": ["items"]}}},
+                        {"name": "Show Item", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "GET", "url": {"raw": "{{base_url}}/items/1", "host": ["{{base_url}}"], "path": ["items", "1"]}}},
+                        {"name": "Update Item", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "PUT", "body": {"mode": "raw", "raw": "{\"sale_price\": 60}", "options": {"raw": {"language": "json"}}}, "url": {"raw": "{{base_url}}/items/1", "host": ["{{base_url}}"], "path": ["items", "1"]}}},
+                        {"name": "Delete Item", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "DELETE", "url": {"raw": "{{base_url}}/items/1", "host": ["{{base_url}}"], "path": ["items", "1"]}}}
+                    ]
+                },
+                {
+                    "name": "Purchase Invoices (CRUD)",
+                    "item": [
+                        {"name": "Get Purchase Invoices", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "GET", "url": {"raw": "{{base_url}}/purchase-invoices", "host": ["{{base_url}}"], "path": ["purchase-invoices"]}}},
+                        {"name": "Create Purchase Invoice", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "POST", "body": {"mode": "raw", "raw": "{\"supplier_id\": 1, \"items\": [{\"item_id\": 1, \"quantity\": 50, \"purchase_price\": 40}]}", "options": {"raw": {"language": "json"}}}, "url": {"raw": "{{base_url}}/purchase-invoices", "host": ["{{base_url}}"], "path": ["purchase-invoices"]}}},
+                        {"name": "Show Purchase Invoice", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "GET", "url": {"raw": "{{base_url}}/purchase-invoices/1", "host": ["{{base_url}}"], "path": ["purchase-invoices", "1"]}}},
+                        {"name": "Delete Purchase Invoice", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "DELETE", "url": {"raw": "{{base_url}}/purchase-invoices/1", "host": ["{{base_url}}"], "path": ["purchase-invoices", "1"]}}}
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "4. Reception Module (المرضى، الحجوزات، الشفتات، الفواتير)",
+            "item": [
+                {
+                    "name": "Patients (CRUD)",
+                    "item": [
+                        {"name": "Get Patients", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "GET", "url": {"raw": "{{base_url}}/patients", "host": ["{{base_url}}"], "path": ["patients"]}}},
+                        {"name": "Create Patient", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "POST", "body": {"mode": "raw", "raw": "{\"name\": \"أحمد محمود\", \"phone\": \"01111111111\"}", "options": {"raw": {"language": "json"}}}, "url": {"raw": "{{base_url}}/patients", "host": ["{{base_url}}"], "path": ["patients"]}}},
+                        {"name": "Show Patient", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "GET", "url": {"raw": "{{base_url}}/patients/1", "host": ["{{base_url}}"], "path": ["patients", "1"]}}},
+                        {"name": "Update Patient", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "PUT", "body": {"mode": "raw", "raw": "{\"name\": \"أحمد محمود علي\"}", "options": {"raw": {"language": "json"}}}, "url": {"raw": "{{base_url}}/patients/1", "host": ["{{base_url}}"], "path": ["patients", "1"]}}},
+                        {"name": "Delete Patient", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "DELETE", "url": {"raw": "{{base_url}}/patients/1", "host": ["{{base_url}}"], "path": ["patients", "1"]}}}
+                    ]
+                },
+                {
+                    "name": "Appointments (CRUD & Status)",
+                    "item": [
+                        {"name": "Get Appointments", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "GET", "url": {"raw": "{{base_url}}/appointments", "host": ["{{base_url}}"], "path": ["appointments"]}}},
+                        {"name": "Create Appointment", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "POST", "body": {"mode": "raw", "raw": "{\"patient_id\": 1, \"doctor_id\": 2, \"appointment_date\": \"2026-08-30\"}", "options": {"raw": {"language": "json"}}}, "url": {"raw": "{{base_url}}/appointments", "host": ["{{base_url}}"], "path": ["appointments"]}}},
+                        {"name": "Show Appointment", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "GET", "url": {"raw": "{{base_url}}/appointments/1", "host": ["{{base_url}}"], "path": ["appointments", "1"]}}},
+                        {"name": "Update Appointment", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "PUT", "body": {"mode": "raw", "raw": "{\"appointment_date\": \"2026-08-31\"}", "options": {"raw": {"language": "json"}}}, "url": {"raw": "{{base_url}}/appointments/1", "host": ["{{base_url}}"], "path": ["appointments", "1"]}}},
+                        {"name": "Change Appointment Status", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "PATCH", "body": {"mode": "raw", "raw": "{\"status\": \"completed\"}", "options": {"raw": {"language": "json"}}}, "url": {"raw": "{{base_url}}/appointments/1/status", "host": ["{{base_url}}"], "path": ["appointments", "1", "status"]}}},
+                        {"name": "Delete Appointment", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "DELETE", "url": {"raw": "{{base_url}}/appointments/1", "host": ["{{base_url}}"], "path": ["appointments", "1"]}}}
+                    ]
+                },
+                {
+                    "name": "Shifts (Open & Close)",
+                    "item": [
+                        {"name": "Open Shift", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "POST", "body": {"mode": "raw", "raw": "{\"initial_balance\": 500, \"latitude\": 30.044420, \"longitude\": 31.235712}", "options": {"raw": {"language": "json"}}}, "url": {"raw": "{{base_url}}/shifts/open", "host": ["{{base_url}}"], "path": ["shifts", "open"]}}},
+                        {"name": "Close Shift", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "POST", "body": {"mode": "raw", "raw": "{\"final_balance\": 1500}", "options": {"raw": {"language": "json"}}}, "url": {"raw": "{{base_url}}/shifts/1/close", "host": ["{{base_url}}"], "path": ["shifts", "1", "close"]}}}
+                    ]
+                },
+                {
+                    "name": "Invoices & Refunds (CRUD)",
+                    "item": [
+                        {"name": "Get Invoices", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "GET", "url": {"raw": "{{base_url}}/invoices", "host": ["{{base_url}}"], "path": ["invoices"]}}},
+                        {"name": "Create Invoice", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "POST", "body": {"mode": "raw", "raw": "{\"patient_id\": 1, \"type\": \"consultation\", \"payment_method\": \"cash\", \"doctor_id\": 2, \"items\": [{\"item_type\": \"service\", \"service_id\": 1, \"item_name\": \"كشف\", \"unit_price\": 300, \"quantity\": 1}]}", "options": {"raw": {"language": "json"}}}, "url": {"raw": "{{base_url}}/invoices", "host": ["{{base_url}}"], "path": ["invoices"]}}},
+                        {"name": "Show Invoice", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "GET", "url": {"raw": "{{base_url}}/invoices/1", "host": ["{{base_url}}"], "path": ["invoices", "1"]}}},
+                        {"name": "Update Invoice", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "PUT", "body": {"mode": "raw", "raw": "{\"notes\": \"ملاحظة جديدة\"}", "options": {"raw": {"language": "json"}}}, "url": {"raw": "{{base_url}}/invoices/1", "host": ["{{base_url}}"], "path": ["invoices", "1"]}}},
+                        {"name": "Refund Invoice", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "POST", "body": {"mode": "raw", "raw": "{\"is_full_refund\": true}", "options": {"raw": {"language": "json"}}}, "url": {"raw": "{{base_url}}/invoices/1/refund", "host": ["{{base_url}}"], "path": ["invoices", "1", "refund"]}}},
+                        {"name": "Delete Invoice", "request": {"auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]}, "method": "DELETE", "url": {"raw": "{{base_url}}/invoices/1", "host": ["{{base_url}}"], "path": ["invoices", "1"]}}}
+                    ]
+                }
+            ]
+        }
+    ],
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://127.0.0.1:8000/api/v1",
+            "type": "string"
+        },
+        {
+            "key": "token",
+            "value": "",
+            "type": "string"
+        }
+    ]
+}
