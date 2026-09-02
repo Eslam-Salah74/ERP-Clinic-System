@@ -379,39 +379,118 @@ class {$dataSeederName} extends Seeder
         File::put($dataSeederPath, $dataSeederContent);
         $this->info("✔ Both Seeders created inside '{$modelName}' folder.");
 
-        // --- 9. Automatically Register Seeders in Module's Main Seeder correctly ---
+        // --- 9. Automatically Register Seeders in Module's Main Seeder with CORRECT ORDER ---
+        // الترتيب الصح: Permission Seeders الأول، Data Seeders بعدين
         $mainSeedersDir = "{$moduleBasePath}/Database/seeders";
         if (!File::exists($mainSeedersDir)) {
             $mainSeedersDir = "{$moduleBasePath}/database/seeders";
         }
-        $mainSeederFiles = glob("{$mainSeedersDir}/*DatabaseSeeder.php");
 
-        foreach ($mainSeederFiles as $mainFile) {
-            // تجاهل السيدرات الفرعية الداخلية ونركز على السيدر الرئيسي للموديول
-            if (str_contains($mainFile, $modelName)) {
-                continue;
+        // جلب ملفات السيدر في الـ root فقط (مش الـ subdirectories)
+        $mainSeederFile = null;
+        foreach (File::files($mainSeedersDir) as $file) {
+            $filename = $file->getFilename();
+            // السيدر الرئيسي للموديول: ينتهي بـ DatabaseSeeder.php وليس بخاص بالـ Model الجديد
+            if (str_ends_with($filename, 'DatabaseSeeder.php') && !str_contains($filename, $modelName)) {
+                $mainSeederFile = $file->getPathname();
+                break;
             }
+        }
 
-            $content = File::get($mainFile);
-            $useStatements = "use Modules\\{$selectedModule}\\Database\\Seeders\\{$modelName}\\{$permissionSeederName};\nuse Modules\\{$selectedModule}\\Database\\Seeders\\{$modelName}\\{$dataSeederName};";
+        if ($mainSeederFile) {
+            $content = File::get($mainSeederFile);
 
             if (!str_contains($content, $permissionSeederName)) {
+
+                // 1. إضافة الـ use statements بعد الـ namespace
+                $useStatements = "use Modules\\{$selectedModule}\\Database\\Seeders\\{$modelName}\\{$permissionSeederName};\n"
+                               . "use Modules\\{$selectedModule}\\Database\\Seeders\\{$modelName}\\{$dataSeederName};";
+
                 $content = preg_replace(
                     '/(namespace\s+[^;]+;)/',
                     "$1\n\n{$useStatements}",
                     $content
                 );
 
-                // تم تعديل طريقة كتابة الأوامر بشكل سليم ومنفصل لتجنب أخطاء السنتكس
-                $callsToAdd = "\$this->call({$permissionSeederName}::class);\n        \$this->call({$dataSeederName}::class);";
-                $content = preg_replace(
-                    '/(public function run\(\): void\s*\{)/',
-                    "$1\n        {$callsToAdd}",
-                    $content
-                );
+                // 2. تحليل الملف سطر بسطر لإيجاد أماكن الإدراج الصح
+                $lines = explode("\n", $content);
 
-                File::put($mainFile, $content);
+                $runMethodLine    = -1; // سطر بداية run()
+                $lastPermLine     = -1; // آخر سطر فيه Permission Seeder call
+                $closingBraceLine = -1; // سطر الـ } الإغلاق لـ run()
+
+                // إيجاد سطر run()
+                foreach ($lines as $i => $line) {
+                    if (preg_match('/public function run\(\)/', $line)) {
+                        $runMethodLine = $i;
+                        break;
+                    }
+                }
+
+                if ($runMethodLine !== -1) {
+                    // إيجاد آخر PermissionDatabaseSeeder call داخل run()
+                    for ($i = $runMethodLine; $i < count($lines); $i++) {
+                        if (str_contains($lines[$i], 'PermissionDatabaseSeeder::class')) {
+                            $lastPermLine = $i;
+                        }
+                    }
+
+                    // إيجاد الـ } الإغلاق لـ run() عن طريق تتبع عمق الأقواس
+                    $depth = 0;
+                    for ($i = $runMethodLine; $i < count($lines); $i++) {
+                        $depth += substr_count($lines[$i], '{');
+                        $depth -= substr_count($lines[$i], '}');
+                        if ($depth === 0 && $i > $runMethodLine) {
+                            $closingBraceLine = $i;
+                            break;
+                        }
+                    }
+
+                    // ✅ إدراج Permission Seeder بعد آخر Permission call موجود
+                    // أو في البداية مباشرة لو مفيش Permission calls أصلاً
+                    if ($lastPermLine !== -1) {
+                        array_splice($lines, $lastPermLine + 1, 0, [
+                            "        \$this->call({$permissionSeederName}::class);"
+                        ]);
+                        $closingBraceLine++; // نضبط الـ index بعد الإدراج
+                    } else {
+                        // مفيش Permission Seeders - نضيف في أول run()
+                        array_splice($lines, $runMethodLine + 1, 0, [
+                            "        \$this->call({$permissionSeederName}::class);"
+                        ]);
+                        $closingBraceLine++;
+                    }
+
+                    // ✅ إدراج Data Seeder قبل الـ } الإغلاق لـ run()
+                    // لو فيه // $this->call([]); نحطه قبلها
+                    $commentedCallLine = -1;
+                    for ($i = $runMethodLine; $i < $closingBraceLine; $i++) {
+                        if (str_contains($lines[$i] ?? '', '// $this->call([]);')) {
+                            $commentedCallLine = $i;
+                            break;
+                        }
+                    }
+
+                    if ($commentedCallLine !== -1) {
+                        array_splice($lines, $commentedCallLine, 0, [
+                            "        \$this->call({$dataSeederName}::class);"
+                        ]);
+                    } else {
+                        // نحط Data Seeder قبل الـ } مباشرة
+                        array_splice($lines, $closingBraceLine, 0, [
+                            "        \$this->call({$dataSeederName}::class);"
+                        ]);
+                    }
+                }
+
+                $content = implode("\n", $lines);
+                File::put($mainSeederFile, $content);
+                $this->info("✔ Seeders registered in correct order (Permission first, Data last).");
+            } else {
+                $this->warn("⚠ Seeders already registered in main seeder. Skipping.");
             }
+        } else {
+            $this->warn("⚠ Could not find main module seeder. Please register seeders manually.");
         }
 
         $this->info("✨ Clean structured CRUD for [{$modelName}] inside module [{$selectedModule}] generated successfully!");

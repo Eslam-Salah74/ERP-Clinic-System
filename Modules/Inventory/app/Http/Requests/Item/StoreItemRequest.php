@@ -42,4 +42,19 @@ class StoreItemRequest extends FormRequest
             'is_active' => ['nullable', 'boolean'],
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'name.required'          => 'اسم الصنف مطلوب.',
+            'name.unique'            => 'اسم الصنف موجود مسبقاً.',
+            'unit.required'          => 'وحدة القياس مطلوبة.',
+            'type.required'          => 'نوع الصنف مطلوب.',
+            'selling_price.required_if' => 'سعر البيع مطلوب للمنتجات الصيدلانية.',
+            'selling_price.numeric'     => 'سعر البيع يجب أن يكون رقماً.',
+            'selling_price.min'         => 'سعر البيع يجب أن يكون صفر أو أكبر.',
+            'current_stock.integer'     => 'الرصيد يجب أن يكون عدداً صحيحاً.',
+            'current_stock.min'         => 'الرصيد يجب أن يكون صفراً أو أكبر.',
+        ];
+    }
 }

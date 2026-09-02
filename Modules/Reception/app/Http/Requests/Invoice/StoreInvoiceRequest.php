@@ -64,7 +64,6 @@ class StoreInvoiceRequest extends FormRequest
                     if ($product) {
                         $requestedQty = $item['quantity'] ?? 0;
 
-                        // لو الكمية المطلوبة أكبر من المتاح في المخزن أو المخزن خلص (0)
                         if ($product->current_stock <= 0) {
                             $validator->errors()->add("items.{$index}.product_id", "عذراً، الصنف ({$product->name}) نفذ من المخزن (رصيده صفر).");
                         } elseif ($requestedQty > $product->current_stock) {
@@ -74,5 +73,25 @@ class StoreInvoiceRequest extends FormRequest
                 }
             }
         });
+    }
+
+    public function messages(): array
+    {
+        return [
+            'patient_id.required'        => 'بيانات المريض مطلوبة.',
+            'patient_id.exists'          => 'المريض المحدد غير موجود.',
+            'type.required'              => 'نوع الفاتورة مطلوب.',
+            'payment_method.required'    => 'طريقة الدفع مطلوبة.',
+            'doctor_id.required_if'      => 'الطبيب مطلوب لفواتير الكشف والجلسات.',
+            'items.required'             => 'يجب إضافة صنف واحد على الأقل.',
+            'items.array'                => 'الأصناف يجب أن تكون قائمة.',
+            'items.min'                  => 'يجب إضافة صنف واحد على الأقل.',
+            'items.*.item_type.required' => 'نوع العنصر مطلوب (service أو product).',
+            'items.*.item_type.in'       => 'نوع العنصر يجب أن يكون (service أو product).',
+            'items.*.service_id.required_if' => 'الخدمة مطلوبة.',
+            'items.*.product_id.required_if' => 'المنتج مطلوب.',
+            'items.*.quantity.required'  => 'كمية العنصر مطلوبة.',
+            'items.*.quantity.min'       => 'الكمية يجب أن تكون 1 على الأقل.',
+        ];
     }
 }

@@ -16,10 +16,19 @@ class UpdateSettingRequest extends FormRequest
         $settingId = $this->route('setting') ?? $this->route('id');
 
         return [
-            'key' => ['sometimes', 'required', 'string', 'max:255', 'unique:settings,key,' . $settingId],
-            'value' => ['nullable', 'string'],
+            'key'          => ['sometimes', 'required', 'string', 'max:255', 'unique:settings,key,' . $settingId],
+            'value'        => ['nullable', 'string'],
             'display_name' => ['nullable', 'string', 'max:255'],
-            'type' => ['nullable', 'string', 'in:text,file,boolean,number'],
+            'type'         => ['nullable', 'string', 'in:text,file,boolean,number'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'key.required' => 'مفتاح الإعداد مطلوب.',
+            'key.unique'   => 'مفتاح الإعداد موجود مسبقاً.',
+            'type.in'      => 'نوع الإعداد يجب أن يكون (text أو file أو boolean أو number).',
         ];
     }
 }

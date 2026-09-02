@@ -2,12 +2,12 @@
 
 namespace Modules\Auth\Services\Staff;
 
-
 use App\Models\User;
 use App\Support\API;
 use Illuminate\Support\Facades\Hash;
 use Modules\Auth\Filters\Staff\StaffFilter;
 use Modules\Auth\Http\Resources\Staff\StaffResource;
+use Spatie\Permission\Models\Role;
 
 class StaffService
 {
@@ -27,7 +27,19 @@ class StaffService
         }
 
         $data = User::create($validatedData);
-        return API::newInstance()->isCreated('Created successfully')->setData(new StaffResource($data))->build();
+
+        // ✅ ربط المستخدم بالرول في Spatie (جدول model_has_roles)
+        // role_id بيتحفظ في عمود users، لكن Spatie محتاج ربط منفصل عشان الصلاحيات تشتغل
+        if (!empty($validatedData['role_id'])) {
+            $role = Role::where('id', $validatedData['role_id'])
+                ->where('guard_name', 'api')
+                ->first();
+            if ($role) {
+                $data->syncRoles([$role->name]);
+            }
+        }
+
+        return API::newInstance()->isCreated('Created successfully')->setData(new StaffResource($data->load('roles')))->build();
     }
 
     public function show($id)
@@ -52,7 +64,18 @@ class StaffService
         }
 
         $record->update($validatedData);
-        return API::newInstance()->isOk('Updated successfully')->setData(new StaffResource($record))->build();
+
+        // ✅ تحديث ربط المستخدم بالرول في Spatie لو تغير الـ role_id
+        if (!empty($validatedData['role_id'])) {
+            $role = Role::where('id', $validatedData['role_id'])
+                ->where('guard_name', 'api')
+                ->first();
+            if ($role) {
+                $record->syncRoles([$role->name]);
+            }
+        }
+
+        return API::newInstance()->isOk('Updated successfully')->setData(new StaffResource($record->load('roles')))->build();
     }
 
     public function destroy($id)

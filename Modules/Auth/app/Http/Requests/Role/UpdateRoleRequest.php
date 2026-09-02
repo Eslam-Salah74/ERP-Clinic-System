@@ -16,9 +16,20 @@ class UpdateRoleRequest extends FormRequest
         $roleId = $this->route('role') ?? $this->route('id');
 
         return [
-            'name' => ['sometimes', 'required', 'string', 'max:255', 'unique:roles,name,' . $roleId],
-            'permissions' => ['nullable', 'array'],
-            'permissions.*' => ['string', 'exists:permissions,name'],
+            'name'          => ['sometimes', 'required', 'string', 'max:255', 'unique:roles,name,' . $roleId],
+            'permissions'   => ['nullable', 'array'],
+            'permissions.*' => ['integer', 'exists:permissions,id'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'name.required'          => 'اسم الدور مطلوب.',
+            'name.unique'            => 'اسم الدور موجود مسبقاً.',
+            'name.max'               => 'اسم الدور يجب ألا يتجاوز 255 حرفاً.',
+            'permissions.array'      => 'الصلاحيات يجب أن تكون قائمة.',
+            'permissions.*.exists'   => 'إحدى الصلاحيات المحددة غير موجودة.',
         ];
     }
 }
