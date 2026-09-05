@@ -10,11 +10,13 @@ return new class extends Migration
     {
         Schema::create('items', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // اسم الصنف (مثل: سرنجات 5 سم، أعشاب مورينجا)
-            $table->decimal('selling_price', 10, 2)->default(0); // سعر البيع للمريض لو الصنف ده بيتباع
+            $table->string('name');
+            $table->decimal('selling_price', 10, 2)->default(0);
             $table->string('unit')->default('piece');
-            $table->string('type')->default('consumable'); // نوع الصنف (مستهلكات طبية وحقن - منتجات صيدلية وتجزئة)
-           $table->decimal('current_stock', 10, 2)->default(0); // الرصيد الحالي (بيبدأ بصفر وهيزيد مع فواتير الشراء)
+            $table->string('stock_unit')->default('piece');
+             $table->decimal('conversion_factor', 10, 3)->default(1);
+            $table->string('type')->default('consumable');
+            $table->decimal('current_stock', 10, 2)->default(0);
             $table->boolean('is_active')->default(true);
             $table->timestamps();
             $table->softDeletes();

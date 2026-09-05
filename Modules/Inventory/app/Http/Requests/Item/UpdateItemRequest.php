@@ -29,9 +29,11 @@ class UpdateItemRequest extends FormRequest
         $itemId = $this->route('item') ?? $this->route('id');
 
         return [
-            'name'          => ['sometimes', 'required', 'string', 'max:255', 'unique:items,name,' . $itemId],
-            'unit'          => ['sometimes', 'required', new Enum(ItemUnitEnum::class)],
-            'type'          => ['sometimes', 'required', new Enum(ItemTypeEnum::class)],
+            'name'          => ['required', 'string', 'max:255', 'unique:items,name,' . $itemId],
+            'unit'          => ['required', new Enum(ItemUnitEnum::class)],
+            'stock_unit'    => ['required', new Enum(ItemUnitEnum::class)],
+            'conversion_factor' => ['required', 'numeric', 'min:1'],
+            'type'          => ['required', new Enum(ItemTypeEnum::class)],
             'selling_price' => [
                 'required_if:type,' . ItemTypeEnum::RETAILABLE->value,
                 'numeric',

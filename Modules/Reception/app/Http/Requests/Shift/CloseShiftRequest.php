@@ -2,6 +2,7 @@
 
 namespace Modules\Reception\Http\Requests\Shift;
 
+use App\Enums\UserType;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CloseShiftRequest extends FormRequest
@@ -13,8 +14,10 @@ class CloseShiftRequest extends FormRequest
 
     public function rules(): array
     {
+        $isReceptionist = auth()->user() && auth()->user()->type === UserType::RECEPTIONIST;
+
         return [
-            'final_balance' => ['required', 'numeric', 'min:0'],
+            'final_balance' => [$isReceptionist ? 'required' : 'nullable', 'numeric', 'min:0'],
         ];
     }
 }

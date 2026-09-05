@@ -22,8 +22,8 @@ return new class extends Migration
             $table->decimal('final_balance', 10, 2)->nullable();   // إجمالي الفلوس عند غلق الشفت
 
             // التوقيتات
-            $table->timestamp('start_time');
-            $table->timestamp('end_time')->nullable();
+            $table->dateTime('start_time');
+            $table->dateTime('end_time')->nullable();
 
             // إحداثيات الـ GPS (للتحقق من موقع فتح الشفت في حالة تفعيل نظام البصمة الجغرافية)
             $table->decimal('opening_latitude', 10, 8)->nullable();

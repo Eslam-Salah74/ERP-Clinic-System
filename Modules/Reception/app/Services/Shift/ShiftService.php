@@ -100,40 +100,34 @@ class ShiftService
         $endTime = Carbon::now();
         $overtimeMinutes = 0;
 
-        // حساب الـ Overtime لو تأخر عن الساعة 4 عصراً (16:00)
+        // حساب الـ Overtime بناءً على وقت نهاية الشفت الرسمي أو المتفق عليه
         $officialEndTime = Carbon::parse($shift->start_time)->copy()->setHour(16)->setMinute(0);
         if ($endTime->greaterThan($officialEndTime)) {
             $overtimeMinutes = $officialEndTime->diffInMinutes($endTime);
         }
 
-        // --- الحسبة المالية الاحترافية للشفت ---
-        // 1. إجمالي الكاش الذي دخل الخزنة خلال هذا الشفت
+        // الحسابات المالية
         $totalCashIncome = Transaction::where('shift_id', $shift->id)
             ->where('payment_method', PaymentMethodEnum::CASH->value)
             ->where('type', TransactionTypeEnum::INCOME->value)
             ->sum('amount');
 
-        // 2. إجمالي الكاش الذي خرج (مرتجعات) خلال هذا الشفت
         $totalCashRefund = Transaction::where('shift_id', $shift->id)
             ->where('payment_method', PaymentMethodEnum::CASH->value)
             ->where('type', TransactionTypeEnum::REFUND->value)
             ->sum('amount');
 
-        // المبلغ المفترض وجوده في الدرج = (عهدة البداية) + (إجمالي الإيرادات الكاش) - (إجمالي المرتجعات الكاش)
         $expectedBalance = ($shift->initial_balance + $totalCashIncome) - $totalCashRefund;
-
-        // المبلغ الفعلي الذي سلمه الموظف وعاد يكتبه في الطلب
         $actualBalance = (float) $request->input('final_balance', 0);
-
-        // حساب العجز أو الزيادة
         $difference = $actualBalance - $expectedBalance;
-        // لو بالموجب تبقى (زيادة)، لو بالسالب تبقى (عجز)
 
-        // تحديث بيانات الشفت
+        // تحديث الشفت (بدون المساس أبداً بـ start_time) وحفظ العجز والزيادة لو متوفرة في الجدول عندك
         $shift->update([
             'status' => ShiftStatusEnum::CLOSED->value,
-            'end_time' => $endTime,
+            'end_time' => $endTime, // هنا يتم تسجيل وقت الإغلاق بدقة
             'final_balance' => $actualBalance,
+            'expected_balance' => $expectedBalance,
+            'difference' => $difference,
             'overtime_minutes' => $overtimeMinutes,
         ]);
 
@@ -147,8 +141,8 @@ class ShiftService
                     'total_cash_refund' => (float) $totalCashRefund,
                     'expected_balance' => (float) $expectedBalance,
                     'actual_balance' => (float) $actualBalance,
-                    'difference' => (float) $difference, // العجز أو الزيادة بالقرش
-                    'status_note' => $difference == 0 ? 'الدرج مضبوط تماماً بالقرش' : ($difference > 0 ? 'يوجد زيادة في الدرج بقيمة ' . $difference : 'يوجد عجز في الدرج بقيمة ' . abs($difference))
+                    'difference' => (float) $difference,
+                    'status_note' => $difference == 0 ? 'الدرج مضبوط تماماً' : ($difference > 0 ? 'زيادة بقيمة ' . $difference : 'عجز بقيمة ' . abs($difference))
                 ]
             ])
             ->build();

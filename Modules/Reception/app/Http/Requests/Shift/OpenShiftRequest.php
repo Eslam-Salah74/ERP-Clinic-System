@@ -2,6 +2,7 @@
 
 namespace Modules\Reception\Http\Requests\Shift;
 
+use App\Enums\UserType;
 use Illuminate\Foundation\Http\FormRequest;
 
 class OpenShiftRequest extends FormRequest
@@ -13,10 +14,12 @@ class OpenShiftRequest extends FormRequest
 
     public function rules(): array
     {
+        $isReceptionist = auth()->user() && auth()->user()->type === UserType::RECEPTIONIST;
+
         return [
-            'initial_balance' => ['required', 'numeric', 'min:0'],
-            'latitude' => ['nullable', 'numeric'],  // إحداثيات الـ GPS اللي باعتها الموظف
-            'longitude' => ['nullable', 'numeric'], // خط الطول
+            'initial_balance' => [$isReceptionist ? 'required' : 'nullable', 'numeric', 'min:0'],
+            'latitude' => ['required', 'numeric'],
+            'longitude' => ['required', 'numeric'],
         ];
     }
 }

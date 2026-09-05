@@ -45,7 +45,7 @@ class UpdateInvoiceRequest extends FormRequest
 
             'items.*.service_id' => ['required_if:items.*.item_type,service', 'nullable', 'exists:services,id'],
             'items.*.product_id' => ['required_if:items.*.item_type,product', 'nullable', 'exists:items,id'],
-            'items.*.quantity' => ['required_with:items', 'integer', 'min:1'],
+            'items.*.quantity' => ['required_if:items.*.item_type,product', 'nullable', 'integer', 'min:1'],
 
             // تم حذف item_name و unit_price
         ];

@@ -13,7 +13,7 @@ class StaffService
 {
     public function index($request, StaffFilter $filter)
     {
-        $data = User::filter($filter)->latest()->paginate(10);
+        $data = User::filter($filter)->with(['role.permissions', 'permissions'])->latest()->paginate(10);
         return API::newInstance()->isOk('Data retrieved successfully')->setData(StaffResource::collection($data))->build();
     }
 
@@ -44,7 +44,7 @@ class StaffService
 
     public function show($id)
     {
-        $record = User::find($id);
+        $record = User::with(['role.permissions', 'permissions'])->find($id);
         if (!$record) {
             return API::newInstance()->isError('Record not found')->build();
         }

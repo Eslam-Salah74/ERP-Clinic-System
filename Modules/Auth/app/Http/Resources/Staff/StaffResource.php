@@ -4,6 +4,7 @@ namespace Modules\Auth\Http\Resources\Staff;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Auth\Http\Resources\Role\RoleResource;
 
 class StaffResource extends JsonResource
 {
@@ -17,7 +18,7 @@ class StaffResource extends JsonResource
             'type' => $this->type,
             'department_id' => $this->department_id,
             'role_id' => $this->role_id,
-            'role' => $this->whenLoaded('role'),
+            'role' => new RoleResource($this->whenLoaded('role')),
             'basic_salary' => $this->basic_salary,
             // 'allowances' => $this->allowances,
             'is_active' => $this->is_active,

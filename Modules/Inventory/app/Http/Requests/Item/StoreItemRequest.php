@@ -29,6 +29,8 @@ class StoreItemRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255', 'unique:items,name'],
             'unit' => ['required', new Enum(ItemUnitEnum::class)],
+            'stock_unit' => ['required', new Enum(ItemUnitEnum::class)],
+            'conversion_factor' => ['required', 'numeric', 'min:1'],
             'type' => ['required', new Enum(ItemTypeEnum::class)], // إضافة التحقق من النوع
 
             // السعر مطلوب فقط لو كان النوع منتج صيدلية (retailable)

@@ -14,7 +14,16 @@ class RoleResource extends JsonResource
             'name' => $this->name,
             // هيرجع الصلاحيات لو طلبناها مع الرول
             'permissions' => $this->whenLoaded('permissions', function () {
-                return $this->permissions->pluck('name');
+                $clinicLang = require resource_path('lang/ar/clinic.php');
+                $translations = $clinicLang['permissions'] ?? [];
+
+                return $this->permissions->map(function ($permission) use ($translations) {
+                    return [
+                        'id' => $permission->id,
+                        'name' => $permission->name,
+                        'label' => $translations[$permission->name] ?? $permission->name,
+                    ];
+                });
             }),
             'created_at' => $this->created_at?->toIso8601String(),
         ];

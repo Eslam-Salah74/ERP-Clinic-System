@@ -19,7 +19,7 @@ class StoreInvoiceRequest extends FormRequest
 
     public function rules(): array
     {
-    
+
         return [
             'patient_id' => ['required', 'exists:patients,id'],
             'appointment_id' => ['nullable', 'exists:appointments,id'],
@@ -47,7 +47,7 @@ class StoreInvoiceRequest extends FormRequest
             'items.*.service_id' => ['required_if:items.*.item_type,service', 'nullable', 'exists:services,id'],
             'items.*.product_id' => ['required_if:items.*.item_type,product', 'nullable', 'exists:items,id'],
 
-            'items.*.quantity' => ['required', 'integer', 'min:1'],
+            'items.*.quantity' => ['required_if:items.*.item_type,product', 'nullable', 'integer', 'min:1'],
         ];
     }
 

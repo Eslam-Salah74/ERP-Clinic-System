@@ -15,11 +15,12 @@ class Item extends Model
 
     protected $table = 'items';
     protected $guarded = ['id'];
-    protected $fillable = ['name', 'selling_price','unit','type', 'current_stock', 'is_active'];
+    protected $fillable = ['name', 'selling_price', 'unit', 'stock_unit', 'conversion_factor', 'type', 'current_stock', 'is_active'];
 
     protected $casts = [
         'type' => ItemTypeEnum::class,
         'unit' => ItemUnitEnum::class,
+        'stock_unit' => ItemUnitEnum::class,
     ];
     public function scopeFilter($query, ItemFilter $filter)
     {

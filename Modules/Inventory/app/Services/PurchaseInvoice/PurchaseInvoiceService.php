@@ -18,51 +18,9 @@ class PurchaseInvoiceService
         return API::newInstance()->isOk('Data retrieved successfully')->setData(PurchaseInvoiceResource::collection($data))->build();
     }
 
-    // public function store($request)
-    // {
-    //     return DB::transaction(function () use ($request) {
-    //         $validated = $request->validated();
-
-    //         $totalAmount = 0;
-    //         foreach ($validated['items'] as $itemData) {
-    //             $totalAmount += $itemData['quantity'] * $itemData['purchase_price'];
-    //         }
-
-    //         $invoice = PurchaseInvoice::create([
-    //             'supplier_id' => $validated['supplier_id'],
-    //             'total_amount' => $totalAmount,
-    //             'notes' => $validated['notes'] ?? null,
-    //         ]);
-
-    //         foreach ($validated['items'] as $itemData) {
-    //             $quantity = $itemData['quantity'];
-    //             $price = $itemData['purchase_price'];
-    //             $itemId = $itemData['item_id'];
-
-    //             PurchaseInvoiceItem::create([
-    //                 'purchase_invoice_id' => $invoice->id,
-    //                 'item_id' => $itemId,
-    //                 'quantity' => $quantity,
-    //                 'purchase_price' => $price,
-    //                 'total_price' => $quantity * $price,
-    //             ]);
-
-    //             // تحديث رصيد المخزن تلقائياً
-    //             $item = Item::findOrFail($itemId);
-    //             $item->increment('current_stock', $quantity);
-    //         }
-
-    //         return API::newInstance()
-    //             ->isCreated('Purchase invoice created successfully')
-    //             ->setData(new PurchaseInvoiceResource($invoice->load('items.item', 'supplier')))
-    //             ->build();
-    //     });
-    // }
-
     public function store($requestOrData)
     {
         return DB::transaction(function () use ($requestOrData) {
-            // لو جاي من كائن Request حقيقي، خذ الـ validated، ولو جاي من مصفوفة (من السييدر) استخدها مباشرة
             $validated = is_object($requestOrData) && method_exists($requestOrData, 'validated')
                 ? $requestOrData->validated()
                 : $requestOrData;
@@ -91,9 +49,15 @@ class PurchaseInvoiceService
                     'total_price' => $quantity * $price,
                 ]);
 
-                // تحديث رصيد المخزن تلقائياً
+                // جلب المنتج لحساب الكمية بالمخزن بناءً على معامل التحويل
                 $item = Item::findOrFail($itemId);
-                $item->increment('current_stock', $quantity);
+
+                // الكمية المضافة للمخزن = الكمية في الفاتورة × معامل التحويل
+                // مثلاً: لو اشترينا 2 زجاجة (bottle)، ومعامل التحويل 5 (مل)، سيضاف للمخزن 10 (مل)
+                $stockQuantityToAdd = $quantity * $item->conversion_factor;
+
+                // تحديث رصيد المخزن تلقائياً بالوحدة الصغرى
+                $item->increment('current_stock', $stockQuantityToAdd);
             }
 
             return API::newInstance()
@@ -124,11 +88,12 @@ class PurchaseInvoiceService
         return DB::transaction(function () use ($id) {
             $record = PurchaseInvoice::with('items')->findOrFail($id);
 
-            // عند حذف الفاتورة، يُفضل خصم الكميات التي تمت إضافتها مسبقاً من المخزن للحفاظ على الدقة
+            // عند حذف الفاتورة، يتم خصم الكمية المحسوبة بالمخزن بناءً على معامل التحويل للحفاظ على دقة المخزون
             foreach ($record->items as $invoiceItem) {
                 $item = Item::find($invoiceItem->item_id);
                 if ($item) {
-                    $item->decrement('current_stock', $invoiceItem->quantity);
+                    $stockQuantityToSubtract = $invoiceItem->quantity * $item->conversion_factor;
+                    $item->decrement('current_stock', $stockQuantityToSubtract);
                 }
             }
 

@@ -12,8 +12,10 @@ class ItemResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'type' => $this->type, // إرجاع نوع الصنف (consumable أو retailable)
-            'unit' => $this->unit, // إرجاع الوحدة (ml, piece, strip)
+            'type' => $this->type,
+            'stock_unit' => $this->stock_unit,
+            'conversion_factor' => $this->conversion_factor,
+            'unit' => $this->unit,
             'selling_price' => $this->selling_price,
             'current_stock' => $this->current_stock,
             'is_active' => (bool) $this->is_active,
