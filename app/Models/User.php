@@ -12,6 +12,7 @@ use Modules\Auth\Filters\Staff\StaffFilter;
 use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Traits\HasRoles;
+use Modules\Reception\Models\Shift;
 
 class User extends Authenticatable implements JWTSubject
 {
@@ -40,6 +41,12 @@ class User extends Authenticatable implements JWTSubject
     public function role()
     {
         return $this->belongsTo(Role::class, 'role_id');
+    }
+
+    // علاقة المستخدم بالشفت الحالي المفتوح
+    public function shift()
+    {
+        return $this->hasOne(Shift::class, 'user_id')->where('status', 'open');
     }
 
     // --- 2. دوال JWT المطلوبة لتسجيل الدخول ---

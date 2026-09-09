@@ -30,7 +30,7 @@ class AuthController extends Controller
         $user = auth('api')->user();
 
         return response()->json([
-            'data' => $user->load('role.permissions') // بنجيب اليوزر مع الرول بتاعته وصلاحياته
+            'data' => $user->load(['role.permissions', 'shift']) // بنجيب اليوزر مع الرول بتاعته وصلاحياته
         ]);
     }
 
@@ -48,7 +48,7 @@ class AuthController extends Controller
             'access_token' => $token,
             'token_type' => 'bearer',
             'expires_in' => auth('api')->factory()->getTTL() * 60,
-            'user' => auth('api')->user()->load('role') // بنرجع بيانات اليوزر مع التوكن
+            'user' => auth('api')->user()->load(['role.permissions', 'shift'])
         ]);
     }
 }

@@ -14,12 +14,13 @@ class ItemDatabaseSeeder extends Seeder
         $items = [
             // ==========================================
             // 1. المستهلكات الطبية (CONSUMABLE - سعر البيع 0)
-            // تُباع فقط داخل الجلسات عبر جدول الخدمات
             // ==========================================
 
-            // --- Love ---
-            ['name' => 'Neofound exo - اكسسوزوم', 'selling_price' => 0.00, 'unit' => ItemUnitEnum::ML->value, 'type' => ItemTypeEnum::CONSUMABLE->value],
-            ['name' => 'Yaqoot - ياقوت', 'selling_price' => 0.00, 'unit' => ItemUnitEnum::ML->value, 'type' => ItemTypeEnum::CONSUMABLE->value],
+            // --- أمثلة على منتجات لها معامل تحويل (مثال: الفايل/الزجاجة 5 مل) ---
+            ['name' => 'Neofound exo - اكسسوزوم', 'selling_price' => 0.00, 'unit' => ItemUnitEnum::VIAL->value, 'stock_unit' => ItemUnitEnum::ML->value, 'conversion_factor' => 5, 'type' => ItemTypeEnum::CONSUMABLE->value],
+            ['name' => 'Yaqoot - ياقوت', 'selling_price' => 0.00, 'unit' => ItemUnitEnum::VIAL->value, 'stock_unit' => ItemUnitEnum::ML->value, 'conversion_factor' => 5, 'type' => ItemTypeEnum::CONSUMABLE->value],
+
+            // --- منتجات عادية (تخزن بالـ ML مباشرة وتُشترى بالـ ML) ---
             ['name' => 'Amber saffron - عنبر', 'selling_price' => 0.00, 'unit' => ItemUnitEnum::ML->value, 'type' => ItemTypeEnum::CONSUMABLE->value],
 
             // --- Mg ---
@@ -70,7 +71,7 @@ class ItemDatabaseSeeder extends Seeder
             ['name' => 'xxl - فيلر (سرنجة 1 مللي)', 'selling_price' => 0.00, 'unit' => ItemUnitEnum::PIECE->value, 'type' => ItemTypeEnum::CONSUMABLE->value],
             ['name' => 'Korean Botox - بوتوكس كوري (فايل كامل)', 'selling_price' => 0.00, 'unit' => ItemUnitEnum::PIECE->value, 'type' => ItemTypeEnum::CONSUMABLE->value],
             ['name' => 'Cortisone Injection - حقن كرتيزون', 'selling_price' => 0.00, 'unit' => ItemUnitEnum::PIECE->value, 'type' => ItemTypeEnum::CONSUMABLE->value],
-            ['name' => 'Bikini Whitening Session - جلسة تفتيح البكيني', 'selling_price' => 0.00, 'unit' => ItemUnitEnum::PIECE->value, 'type' => ItemTypeEnum::CONSUMABLE->value], // يفضل مستقبلاً تغيير اسمها لـ "مادة تفتيح البكيني"
+            ['name' => 'Bikini Whitening Session - جلسة تفتيح البكيني', 'selling_price' => 0.00, 'unit' => ItemUnitEnum::PIECE->value, 'type' => ItemTypeEnum::CONSUMABLE->value],
             ['name' => 'Amelan Peel - تقشير اميلان', 'selling_price' => 0.00, 'unit' => ItemUnitEnum::PIECE->value, 'type' => ItemTypeEnum::CONSUMABLE->value],
             ['name' => 'Remelan Peel - تقشير ريميلان', 'selling_price' => 0.00, 'unit' => ItemUnitEnum::PIECE->value, 'type' => ItemTypeEnum::CONSUMABLE->value],
             ['name' => 'Peel System - تقشير بيل سيستم', 'selling_price' => 0.00, 'unit' => ItemUnitEnum::PIECE->value, 'type' => ItemTypeEnum::CONSUMABLE->value],
@@ -86,11 +87,14 @@ class ItemDatabaseSeeder extends Seeder
             // ==========================================
             // 2. منتجات الصيدلية والتجزئة (RETAILABLE - لها سعر بيع مباشر)
             // ==========================================
+
+            // --- أمثلة على منتجات تجزئة تُباع بالعلبة (1:1) ---
+            ['name' => 'أعشاب من أشواجاندا', 'selling_price' => 150.00, 'unit' => ItemUnitEnum::BOX->value, 'stock_unit' => ItemUnitEnum::BOX->value, 'conversion_factor' => 1, 'type' => ItemTypeEnum::RETAILABLE->value],
+
             ['name' => 'أعشاب من مورينجا', 'selling_price' => 150.00, 'unit' => ItemUnitEnum::PIECE->value, 'type' => ItemTypeEnum::RETAILABLE->value],
             ['name' => 'أعشاب من مانجو', 'selling_price' => 150.00, 'unit' => ItemUnitEnum::PIECE->value, 'type' => ItemTypeEnum::RETAILABLE->value],
             ['name' => 'أعشاب من جارسينيا', 'selling_price' => 150.00, 'unit' => ItemUnitEnum::PIECE->value, 'type' => ItemTypeEnum::RETAILABLE->value],
             ['name' => 'أعشاب من لا فنتريكس', 'selling_price' => 50.00, 'unit' => ItemUnitEnum::PIECE->value, 'type' => ItemTypeEnum::RETAILABLE->value],
-            ['name' => 'أعشاب من أشواجاندا', 'selling_price' => 150.00, 'unit' => ItemUnitEnum::PIECE->value, 'type' => ItemTypeEnum::RETAILABLE->value],
             ['name' => 'قهوة كوكوت', 'selling_price' => 180.00, 'unit' => ItemUnitEnum::PIECE->value, 'type' => ItemTypeEnum::RETAILABLE->value],
             ['name' => 'ألترا جرين كافيه', 'selling_price' => 180.00, 'unit' => ItemUnitEnum::PIECE->value, 'type' => ItemTypeEnum::RETAILABLE->value],
             ['name' => 'فوار مـ بيور', 'selling_price' => 290.00, 'unit' => ItemUnitEnum::PIECE->value, 'type' => ItemTypeEnum::RETAILABLE->value],
@@ -105,11 +109,13 @@ class ItemDatabaseSeeder extends Seeder
             Item::firstOrCreate(
                 ['name' => $data['name']],
                 [
-                    'unit' => $data['unit'],
-                    'type' => $data['type'], // حفظ النوع في الداتابيز
-                    'selling_price' => $data['selling_price'],
-                    'current_stock' => 0,
-                    'is_active' => true,
+                    'unit'              => $data['unit'],
+                    'type'              => $data['type'],
+                    'selling_price'     => $data['selling_price'],
+                    'conversion_factor' => $data['conversion_factor'] ?? 1.000,
+                    'stock_unit'        => $data['stock_unit'] ?? $data['unit'],
+                    'current_stock'     => 0,
+                    'is_active'         => true,
                 ]
             );
         }

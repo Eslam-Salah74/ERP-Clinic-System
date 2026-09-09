@@ -2,24 +2,30 @@
 
 return [
 
+    /*
+    |--------------------------------------------------------------------------
+    | Cross-Origin Resource Sharing (CORS) Configuration
+    |--------------------------------------------------------------------------
+    */
+
     'paths' => [
         'api/*',
-        'oauth/*',
+        'sanctum/csrf-cookie',
     ],
 
     'allowed_methods' => ['*'],
 
     'allowed_origins' => [
+        // Production - Vercel
+        'https://golf-clinic-system.vercel.app',
+
+        // Local development
         'http://localhost:5173',
         'http://127.0.0.1:5173',
-        'http://localhost:3000',
-        'http://127.0.0.1:3000',
+        'http://127.0.0.1:8000',
     ],
 
-    'allowed_origins_patterns' => [
-        '#^https://[a-zA-Z0-9-]+\.ngrok-free\.app$#',
-        '#^https://[a-zA-Z0-9-]+\.ngrok\.io$#',
-    ],
+    'allowed_origins_patterns' => [],
 
     'allowed_headers' => ['*'],
 
