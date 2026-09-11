@@ -14,8 +14,15 @@ class RoleResource extends JsonResource
             'name' => $this->name,
             // هيرجع الصلاحيات لو طلبناها مع الرول
             'permissions' => $this->whenLoaded('permissions', function () {
-                $clinicLang = require resource_path('lang/ar/clinic.php');
-                $translations = $clinicLang['permissions'] ?? [];
+                // استخدام lang_path بدلاً من resource_path لتتوافق مع مكان مجلد الـ lang في لافيل الحديثة
+                $path = lang_path('ar/clinic.php');
+                $translations = [];
+
+                // فحص هل الملف موجود أصلاً على السيرفر لتفادي أي Server Error
+                if (file_exists($path)) {
+                    $clinicLang = require $path;
+                    $translations = $clinicLang['permissions'] ?? [];
+                }
 
                 return $this->permissions->map(function ($permission) use ($translations) {
                     return [

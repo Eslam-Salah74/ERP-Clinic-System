@@ -44,10 +44,11 @@ class AuthController extends Controller
     // دالة مساعدة لتنسيق التوكن
     protected function respondWithToken($token)
     {
+        $ttl = auth('api')->factory()->getTTL();
         return response()->json([
             'access_token' => $token,
             'token_type' => 'bearer',
-            'expires_in' => auth('api')->factory()->getTTL() * 60,
+            'expires_in' => $ttl ? $ttl * 60 : null,
             'user' => auth('api')->user()->load(['role.permissions', 'shift'])
         ]);
     }

@@ -11,7 +11,6 @@ class RoleService
 {
     public function index($request, RoleFilter $filter)
     {
-        // استخدام الكويري بيلدر مباشرة لأن موديل Spatie لا يستخدم ترايت الفلتر الخاص بنا افتراضياً
         $query = Role::query()->with('permissions');
 
         if ($request->has('name')) {
@@ -53,7 +52,6 @@ class RoleService
     {
         $role = Role::findOrFail($id);
 
-        // منع التعديل على السوبر أدمن كنوع من الحماية
         if ($role->name === 'Super Admin' && $request->name !== 'Super Admin') {
             return API::newInstance()->isError('You cannot rename the Super Admin role.')->setStatus(403)->build();
         }

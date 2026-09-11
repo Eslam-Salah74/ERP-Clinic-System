@@ -21,15 +21,12 @@ class StaffService
     {
         $validatedData = $request->validated();
 
-        // تشفير كلمة المرور قبل الحفظ
         if (isset($validatedData['password'])) {
             $validatedData['password'] = Hash::make($validatedData['password']);
         }
 
         $data = User::create($validatedData);
 
-        // ✅ ربط المستخدم بالرول في Spatie (جدول model_has_roles)
-        // role_id بيتحفظ في عمود users، لكن Spatie محتاج ربط منفصل عشان الصلاحيات تشتغل
         if (!empty($validatedData['role_id'])) {
             $role = Role::where('id', $validatedData['role_id'])
                 ->where('guard_name', 'api')
@@ -39,7 +36,8 @@ class StaffService
             }
         }
 
-        return API::newInstance()->isCreated('Created successfully')->setData(new StaffResource($data->load('roles')))->build();
+        // تم التعديل هنا ليعتمد على العلاقة المفردة role.permissions بدلاً من roles
+        return API::newInstance()->isCreated('Created successfully')->setData(new StaffResource($data->load('role.permissions')))->build();
     }
 
     public function show($id)
@@ -56,7 +54,6 @@ class StaffService
         $record = User::findOrFail($id);
         $validatedData = $request->validated();
 
-        // لو تم إرسال باسورد جديد يتم تشفيره، لو فارغ يتم حذفه من المصفوفة حتى لا يعدل القديم بـ null
         if (!empty($validatedData['password'])) {
             $validatedData['password'] = Hash::make($validatedData['password']);
         } else {
@@ -65,7 +62,6 @@ class StaffService
 
         $record->update($validatedData);
 
-        // ✅ تحديث ربط المستخدم بالرول في Spatie لو تغير الـ role_id
         if (!empty($validatedData['role_id'])) {
             $role = Role::where('id', $validatedData['role_id'])
                 ->where('guard_name', 'api')
@@ -75,7 +71,8 @@ class StaffService
             }
         }
 
-        return API::newInstance()->isOk('Updated successfully')->setData(new StaffResource($record->load('roles')))->build();
+        // تم التعديل هنا أيضاً ليعتمد على العلاقة المفردة role.permissions
+        return API::newInstance()->isOk('Updated successfully')->setData(new StaffResource($record->load('role.permissions')))->build();
     }
 
     public function destroy($id)

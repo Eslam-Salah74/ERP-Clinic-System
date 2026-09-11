@@ -12,22 +12,19 @@ class DefaultAdminSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. إنشاء رول السوبر أدمن (لو مش موجود)
         $superAdminRole = Role::firstOrCreate(
             ['name' => 'Super Admin', 'guard_name' => 'api']
         );
 
-        // 2. جلب كل الصلاحيات اللي اتكريتت في الداتابيز وإعطائها للسوبر أدمن
         $allPermissions = Permission::all();
         $superAdminRole->syncPermissions($allPermissions);
 
-        // 3. إنشاء حساب المدير العام (Eslam Salah) وربطه بالرول
         $adminUser = User::firstOrCreate(
-            ['phone' => '01110731636'], // رقم الهاتف اللي هتعمل بيه Login
+            ['phone' => '01110731636'],
             [
                 'name' => 'Eslam Salah',
                 'email' => 'admin@clinic.com',
-                'password' => Hash::make('257411'), // الباسورد
+                'password' => Hash::make('257411'),
                 'type' => 'admin',
                 'department_id' => 1,
                 'role_id' => $superAdminRole->id,
@@ -38,7 +35,6 @@ class DefaultAdminSeeder extends Seeder
             ]
         );
 
-        // 4. تأكيد ربط اليوزر بالرول تبع مكتبة Spatie
         if (!$adminUser->hasRole('Super Admin')) {
             $adminUser->assignRole($superAdminRole);
         }

@@ -44,8 +44,18 @@ class StoreInvoiceRequest extends FormRequest
             'items' => ['required', 'array', 'min:1'],
             'items.*.item_type' => ['required', 'in:service,product'],
 
-            'items.*.service_id' => ['required_if:items.*.item_type,service', 'nullable', 'exists:services,id'],
-            'items.*.product_id' => ['required_if:items.*.item_type,product', 'nullable', 'exists:items,id'],
+            'items.*.service_id' => [
+                'required_if:items.*.item_type,service',
+                'prohibited_if:items.*.item_type,product',
+                'nullable',
+                'exists:services,id'
+            ],
+            'items.*.product_id' => [
+                'required_if:items.*.item_type,product',
+                'prohibited_if:items.*.item_type,service',
+                'nullable',
+                'exists:items,id'
+            ],
 
             'items.*.quantity' => ['required_if:items.*.item_type,product', 'nullable', 'integer', 'min:1'],
         ];
@@ -88,8 +98,10 @@ class StoreInvoiceRequest extends FormRequest
             'items.min'                  => 'يجب إضافة صنف واحد على الأقل.',
             'items.*.item_type.required' => 'نوع العنصر مطلوب (service أو product).',
             'items.*.item_type.in'       => 'نوع العنصر يجب أن يكون (service أو product).',
-            'items.*.service_id.required_if' => 'الخدمة مطلوبة.',
-            'items.*.product_id.required_if' => 'المنتج مطلوب.',
+            'items.*.service_id.required_if' => 'الخدمة مطلوبة عند اختيار نوع الخدمة.',
+            'items.*.service_id.prohibited_if' => 'لا يمكن إضافة service_id مع منتج.',
+            'items.*.product_id.required_if' => 'المنتج مطلوب عند اختيار نوع المنتج.',
+            'items.*.product_id.prohibited_if' => 'لا يمكن إضافة product_id مع خدمة.',
             'items.*.quantity.required'  => 'كمية العنصر مطلوبة.',
             'items.*.quantity.min'       => 'الكمية يجب أن تكون 1 على الأقل.',
         ];

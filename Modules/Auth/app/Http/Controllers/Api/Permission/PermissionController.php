@@ -23,10 +23,14 @@ class PermissionController extends Controller implements HasMiddleware
      */
     public function index()
     {
-        // تحميل ملف الترجمة مباشرة بدل الاعتماد على locale التطبيق
-        $clinicLang             = require resource_path('lang/ar/clinic.php');
-        $permissionsTranslations = $clinicLang['permissions'] ?? [];
+        // استخدام lang_path بدلاً من resource_path لتجنب أخطاء السيرفر في لارافيل الحديثة
+        $path = lang_path('ar/clinic.php');
+        $permissionsTranslations = [];
 
+        if (file_exists($path)) {
+            $clinicLang = require $path;
+            $permissionsTranslations = $clinicLang['permissions'] ?? [];
+        }
 
         // جلب كل الصلاحيات من الداتابيز
         $permissions = Permission::where('guard_name', 'api')
@@ -34,11 +38,12 @@ class PermissionController extends Controller implements HasMiddleware
             ->get()
             ->map(function ($permission) use ($permissionsTranslations) {
                 return [
-                    'id'         => $permission->id,
-                    'name'       => $permission->name,
-                    'label'      => $permissionsTranslations[$permission->name] ?? $permission->name,
-                    'group'      => $this->extractGroup($permission->name),
-                    'action'     => $this->extractAction($permission->name),
+                    'id'     => $permission->id,
+                    'name'   => $permission->name,
+                    // جلب الترجمة من الملف أو استخدام الاسم كبديل (Fallback)
+                    'label'  => $permissionsTranslations[$permission->name] ?? $permission->name,
+                    'group'  => $this->extractGroup($permission->name),
+                    'action' => $this->extractAction($permission->name),
                 ];
             })
             ->groupBy('group')
