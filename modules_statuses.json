@@ -3,5 +3,6 @@
     "Roles": true,
     "Setup": true,
     "Inventory": true,
-    "Reception": true
+    "Reception": true,
+    "HR": true
 }

@@ -14,6 +14,9 @@ use Modules\Reception\Database\Seeders\Appointment\AppointmentDatabaseSeeder;
 use Modules\Reception\Database\Seeders\Patient\PatientPermissionDatabaseSeeder;
 use Modules\Reception\Database\Seeders\Patient\PatientDatabaseSeeder;
 
+use Modules\Reception\Database\Seeders\FollowUp\FollowUpPermissionDatabaseSeeder;
+use Modules\Reception\Database\Seeders\FollowUp\FollowUpDatabaseSeeder;
+
 use Illuminate\Database\Seeder;
 
 class ReceptionDatabaseSeeder extends Seeder
@@ -27,6 +30,7 @@ class ReceptionDatabaseSeeder extends Seeder
         $this->call(AppointmentPermissionDatabaseSeeder::class);
         $this->call(ShiftPermissionDatabaseSeeder::class);
         $this->call(InvoicePermissionDatabaseSeeder::class);
+        $this->call(FollowUpPermissionDatabaseSeeder::class);
 
         $this->call(PatientDatabaseSeeder::class);
 
@@ -35,5 +39,7 @@ class ReceptionDatabaseSeeder extends Seeder
         $this->call(AppointmentDatabaseSeeder::class);
 
         $this->call(InvoiceDatabaseSeeder::class);
+
+        $this->call(FollowUpDatabaseSeeder::class);
     }
 }

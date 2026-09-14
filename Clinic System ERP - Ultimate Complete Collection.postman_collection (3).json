@@ -1,0 +1,2468 @@
+{
+  "info": {
+    "_postman_id": "e202a42e-1a25-4f24-a33c-58916159c8d6",
+    "name": "Clinic System ERP - Ultimate Complete Collection",
+    "description": "الملف الشامل والنهائي لكل مسارات وعمليات السيستم الطبي (Auth, Setup, Inventory, Reception, Shifts, Invoices, Patients, Appointments)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "27537915",
+    "_collection_link": "https://go.postman.co/collection/27537915-e202a42e-1a25-4f24-a33c-58916159c8d6?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "1. Auth & Staff Management",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var jsonData = pm.response.json();\nif(jsonData.data && jsonData.data.access_token){\n    pm.collectionVariables.set(\"token\", jsonData.data.access_token);\n} else if (jsonData.access_token) {\n    pm.collectionVariables.set(\"token\", jsonData.access_token);\n}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"phone\": \"01110731636\",\n    \"password\": \"257411\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Me Profile",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Roles (Index)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/roles",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "roles"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Permisions (Index)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/permissions",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "permissions"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Roles (Store)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"مستقبل\",\n    \"permissions\": [5, 12]\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/roles",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "roles"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Roles (Show)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/roles/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "roles",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Roles (Update)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"موظف استقبال معدل\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/roles/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "roles",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Roles (Delete)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/roles/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "roles",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Staff (Index)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/staff",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "staff"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Staff (Store)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"محمد أحمد\",\n    \"phone\": \"01000000000\",\n    \"email\": \"mohamed@clinic.com\",\n    \"password\": \"12345678\",\n    \"role_id\": 2,\n    \"type\":\"doctor\", //Note:admin, receptionist ,doctor,nurse,sterilization,accountant\n    \"basic_salary\":7500,\n    \"is_active\":true,\n    \"department_id\":2,\n    \"achieved_target\":0\n\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/staff",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "staff"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Staff (Show)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/staff/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "staff",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Staff (Update)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"محمد أحمد معدل\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/staff/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "staff",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Staff (Delete)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/staff/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "staff",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Setup Module (الإعدادات، الخدمات، الأقسام)",
+      "item": [
+        {
+          "name": "Departments (CRUD)",
+          "item": [
+            {
+              "name": "Get Departments",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/departments",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "departments"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Department",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"name\": \"قسم الباطنة\"}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/departments",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "departments"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Show Department",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/departments/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "departments",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Department",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"name\": \"الباطنة العامة\"}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/departments/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "departments",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Department",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/departments/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "departments",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Services (CRUD)",
+          "item": [
+            {
+              "name": "Get Services",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/services",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "services"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Service",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": " // لو النوع session لازم تبعتلي  items\r\n/*{\r\n    \"name\": \"كشف عادي\",\r\n    \"price\": 300,\r\n    \"department_id\": 1,\r\n    \"type\": \"consultation\"\r\n}*/\r\n/*{\r\n    \"name\": \"جهاز الفركشن\",\r\n    \"price\": 300,\r\n    \"department_id\": 1,\r\n    \"type\": \"device\"\r\n}*/\r\n{\r\n    \"name\": \"Test5ml 64نص مللي\",\r\n    \"price\": 2300,\r\n    \"department_id\": 1,\r\n    \"type\": \"session\",\r\n    \"items\": [\r\n        {\r\n            \"item_id\": 64,\r\n            \"quantity\": 0.5\r\n        }\r\n    ]\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/services",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "services"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Show Service",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/services/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "services",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Service",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"price\": 350}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/services/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "services",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Service",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/services/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "services",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Settings (CRUD)",
+          "item": [
+            {
+              "name": "Get Settings",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/settings",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "settings"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Setting",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"value\": \"30\"}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/settings/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "settings",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Inventory Module (المخازن والمشتريات)",
+      "item": [
+        {
+          "name": "Suppliers (CRUD)",
+          "item": [
+            {
+              "name": "Get Suppliers",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/suppliers",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "suppliers"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Supplier",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"name\": \"Test\", \"phone\": \"11212\"}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/suppliers",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "suppliers"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Show Supplier",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/suppliers/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "suppliers",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Supplier",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"name\": \"شركة الأدوية المصرية\"}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/suppliers/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "suppliers",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Supplier",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/suppliers/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "suppliers",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Items (CRUD)",
+          "item": [
+            {
+              "name": "Get Items",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/items",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "items"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Item",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "//Note: unit: ml مللي, gram جرام,piece عدد / قطعة,strip شريط,box علبة,vial فايل (أمبول / زجاجة ميزو)\r\n\r\n//Note type:'consumable'; //, مستهلكات طبية وحقن (سعر البيع 0 - تُباع داخل الجلسات) لو النوع ده ابعت السعر ب 0وتخفي الخانه \r\n//          'retailable'; // منتجات صيدلية وتجزئة (لها سعر بيع مباشر)\r\n//\"selling_price\": 3200, بنشيله لو \"type\":\"consumable\"\r\n{\"name\": \"test5ml\", \"unit\":\"vial\",\"stock_unit\":\"ml\",\"conversion_factor\":5,\"current_stock\": 0, \"type\":\"consumable\",\"is_active\":true}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/items",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "items"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Show Item",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/items/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "items",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Item",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"sale_price\": 60}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/items/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "items",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Item",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/items/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "items",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Purchase Invoices (CRUD)",
+          "item": [
+            {
+              "name": "Get Purchase Invoices",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/purchase-invoices",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "purchase-invoices"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Purchase Invoice",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"supplier_id\": 1, \r\n\"items\": [\r\n    {\"item_id\": 64, \"quantity\": 5, \"purchase_price\": 6000}\r\n    ]\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/purchase-invoices",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "purchase-invoices"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Show Purchase Invoice",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/purchase-invoices/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "purchase-invoices",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Purchase Invoice",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/purchase-invoices/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "purchase-invoices",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Reception Module (المرضى، الحجوزات، الشفتات، الفواتير)",
+      "item": [
+        {
+          "name": "Patients (CRUD)",
+          "item": [
+            {
+              "name": "Get Patients",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/patients",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "patients"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Patient",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"name\": \"أحمد محمود\", \"phone\": \"01111111111\",\"gender\": \"male\",\"age\": 30,\"is_staff\": false}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/patients",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "patients"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Show Patient",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/patients/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "patients",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Patient",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"name\": \"أحمد محمود علي\"}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/patients/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "patients",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Patient",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/patients/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "patients",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Appointments (CRUD & Status)",
+          "item": [
+            {
+              "name": "Get Appointments",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/appointments",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "appointments"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Appointment",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"patient_id\": 1, \"doctor_id\": 2, \"appointment_date\": \"2026-08-28\"\r\n,\"service_id\": 1,\"visit_type\": \"consultation\", \"notes\": \"حجز مبدئي تجريبي للكشف\"}\r\n\r\n//Note: visit_type => consultation (كشف) OR follow_up (متابعة) OR session (جلسة)",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/appointments",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "appointments"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Show Appointment",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/appointments/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "appointments",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Appointment",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"appointment_date\": \"2026-08-31\"}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/appointments/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "appointments",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Change Appointment Status",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"status\": \"pending\"}\r\n\r\n//Note: status=> pending (تم الحجز) OR completed ( تم الكشف ) OR cancelled ( تم الغاء الكشف)",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/appointments/1/status",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "appointments",
+                    "1",
+                    "status"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Appointment",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/appointments/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "appointments",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Shifts (Open & Close)",
+          "item": [
+            {
+              "name": "Open Shift",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"initial_balance\": 500,\r\n    \"latitude\": 29.644174,\r\n    \"longitude\": 31.267229\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/shifts/open",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "shifts",
+                    "open"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Close Shift",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"final_balance\": 1500}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/shifts/9/close",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "shifts",
+                    "9",
+                    "close"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Invoices & Refunds (CRUD)",
+          "item": [
+            {
+              "name": "Get Invoices",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/invoices",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "invoices"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Invoice",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": " //Note:Invoice Type => 1.consultation كشف / استشارة (يتطلب دكتور)\r\n //                     2.session جلسة طبية (يتطلب دكتور وممكن ممرضة)\r\n //                     3.direct_sale بيع مباشر أدوية/مستلزمات (لا يتطلب دكتور)  \r\n\r\n //1. الحالة العامة: كشف طبي أو جلسة (مع الكتشف الذكي للحجز أو الكشف الفوري Walk-in)\r\n{\r\n    \"patient_id\": 1,\r\n    \"appointment_id\": null,\r\n    \"type\": \"consultation\",\r\n    \"payment_method\": \"cash\",\r\n    \"doctor_id\": 2,\r\n    \"nurse_id\": null,\r\n    \"discount\": 0,\r\n    \"notes\": \"كشف طبي شامل مع أدوية من الصيدلية\",\r\n    \"items\": [\r\n        {\r\n            \"item_type\": \"service\",\r\n            \"service_id\": 23\r\n        }\r\n        //,\r\n        // {\r\n        //     \"item_type\": \"product\",\r\n        //     \"product_id\": 1,\r\n        //     \"quantity\": 3\r\n        // }\r\n    ]\r\n}\r\n//2. حالة مبيعات صيدلية مباشرة (direct_sale)\r\n// {\r\n//     \"patient_id\": 1,\r\n//     \"appointment_id\": null,\r\n//     \"type\": \"direct_sale\",\r\n//     \"payment_method\": \"cash\",\r\n//     \"doctor_id\": null,\r\n//     \"nurse_id\": null,\r\n//     \"discount\": 0,\r\n//     \"notes\": \"شراء أدوية مباشرة من الصيدلية بدون كشف\",\r\n//     \"items\": [\r\n//         {\r\n//             \"item_type\": \"product\",\r\n//             \"service_id\": null,\r\n//             \"product_id\": 1,\r\n//             \"quantity\": 3\r\n//         }\r\n//     ]\r\n// }\r\n//3. حالة إرسال appointment_id صراحة (حجز مسبق معروف رقمه)\r\n// {\r\n//     \"patient_id\": 1,\r\n//     \"appointment_id\": 4,\r\n//     \"type\": \"session\",\r\n//     \"payment_method\": \"cash\",\r\n//     \"doctor_id\": 2,\r\n//     \"nurse_id\": null,\r\n//     \"discount\": 0,\r\n//     \"notes\": null,\r\n//     \"items\": [\r\n//         {\r\n//             \"item_type\": \"service\",\r\n//             \"service_id\": 20,\r\n//             \"product_id\": null,\r\n//             \"quantity\": 1\r\n//         }\r\n//     ]\r\n// }",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/invoices",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "invoices"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Show Invoice",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/invoices/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "invoices",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Invoice",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"notes\": \"ملاحظة جديدة\"}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/invoices/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "invoices",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Refund Invoice",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "//1. حالة الاسترداد الكلي (Full Refund)\r\n{\"is_full_refund\": true}\r\n//2. حالة الاسترداد الجزئي (Partial Refund)\r\n// {\r\n//     \"is_full_refund\": false,\r\n//     \"items\": [\r\n//         {\r\n//             \"invoice_item_id\": 2,\r\n//             \"return_quantity\": 1\r\n//         }\r\n//     ]\r\n// }\r\n//3. حالة الاسترداد الجزئي لأكثر من صنف (Multiple Items Partial Refund)\r\n// {\r\n//     \"is_full_refund\": false,\r\n//     \"items\": [\r\n//         {\r\n//             \"invoice_item_id\": 2,\r\n//             \"return_quantity\": 1\r\n//         },\r\n//         {\r\n//             \"invoice_item_id\": 5,\r\n//             \"return_quantity\": 2\r\n//         }\r\n//     ]\r\n// }",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/invoices/1/refund",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "invoices",
+                    "1",
+                    "refund"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Invoice",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/invoices/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "invoices",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Follow-ups (CRUD & Status)",
+          "item": [
+            {
+              "name": "Get Follow-ups",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/follow-ups?status=pending",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "follow-ups"
+                  ],
+                  "query": [
+                    {
+                      "key": "status",
+                      "value": "pending"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Follow-up",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"patient_id\": 1,\n    \"doctor_id\": 2,\n    \"appointment_id\": 1,\n    \"follow_up_date\": \"2026-09-20 14:00:00\",\n    \"status\": \"pending\",\n    \"notes\": \"متابعة بعد الكشف الأول لفحص استجابة المريض للعلاج\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/follow-ups",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "follow-ups"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Show Follow-up",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/follow-ups/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "follow-ups",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Follow-up",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"status\": \"completed\",\n    \"notes\": \"تمت المتابعة وتأكيد تحسن حالة المريض\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/follow-ups/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "follow-ups",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Follow-up",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/follow-ups/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "follow-ups",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "5. HR & Expenses Module (إدارة النفقات والمصروفات والأرباح والخسائر)",
+      "item": [
+        {
+          "name": "Get Expenses",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/expenses?category=utility",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "expenses"
+              ],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "utility"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Expense Summary (P&L)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/expenses/summary?date_from=2026-09-01&date_to=2026-09-30",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "expenses",
+                "summary"
+              ],
+              "query": [
+                {
+                  "key": "date_from",
+                  "value": "2026-09-01"
+                },
+                {
+                  "key": "date_to",
+                  "value": "2026-09-30"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Expense (Electricity / Internet / Buffet)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"فاتورة كهرباء شهر 9\",\n    \"category\": \"utility\",\n    \"amount\": 1250.50,\n    \"payment_method\": \"cash\",\n    \"expense_date\": \"2026-09-14\",\n    \"notes\": \"سداد فاتورة الكهرباء لفرع العيادة الرئيسي\"\n}\n\n// Note: category options => utility (كهرباء/نت/مياه), buffet (بوفيه/ضيافة), maintenance (صيانة), rent (إيجار), salaries (مرتبات/نثريات), other (أخرى)",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/expenses",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "expenses"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Show Expense",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/expenses/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "expenses",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Expense",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"amount\": 1300.00,\n    \"notes\": \"تحديث قيمة الفاتورة شاملة غرامة التأخير\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/expenses/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "expenses",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Expense",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/expenses/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "expenses",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000/api/v1"
+    },
+    {
+      "key": "token",
+      "value": ""
+    }
+  ]
+}

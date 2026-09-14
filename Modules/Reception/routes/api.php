@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Reception\Http\Controllers\Api\Appointment\AppointmentController;
+use Modules\Reception\Http\Controllers\Api\FollowUp\FollowUpController;
 use Modules\Reception\Http\Controllers\Api\Invoice\InvoiceController;
 use Modules\Reception\Http\Controllers\Api\Patient\PatientController;
 use Modules\Reception\Http\Controllers\Api\Shift\ShiftController;
@@ -17,4 +18,7 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
 
     Route::apiResource('invoices', InvoiceController::class);
     Route::post('invoices/{id}/refund', [InvoiceController::class, 'refund']);
+
+    Route::apiResource('follow-ups', FollowUpController::class);
+    Route::patch('follow-ups/{id}/status', [FollowUpController::class, 'changeStatus']);
 });
