@@ -21,16 +21,22 @@ class Invoice extends Model
 
     protected $table = 'invoices';
     protected $guarded = ['id'];
-protected $fillable = [
+    protected $fillable = [
         'invoice_number', 'patient_id', 'appointment_id', 'doctor_id', 'nurse_id',
         'shift_id', 'queue_number', 'type', 'status', 'payment_method',
-        'sub_total', 'discount', 'grand_total', 'refunded_amount', 'notes', 'created_by'
+        'sub_total', 'discount', 'grand_total', 'paid_amount', 'remaining_amount', 'refunded_amount', 'notes', 'created_by'
     ];
 
     protected $casts = [
         'type' => InvoiceTypeEnum::class,
         'status' => InvoiceStatusEnum::class,
         'payment_method' => PaymentMethodEnum::class,
+        'sub_total' => 'decimal:2',
+        'discount' => 'decimal:2',
+        'grand_total' => 'decimal:2',
+        'paid_amount' => 'decimal:2',
+        'remaining_amount' => 'decimal:2',
+        'refunded_amount' => 'decimal:2',
     ];
 
     // العلاقات

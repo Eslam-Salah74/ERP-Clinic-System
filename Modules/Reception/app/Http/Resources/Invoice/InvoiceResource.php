@@ -4,6 +4,7 @@ namespace Modules\Reception\Http\Resources\Invoice;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Inventory\Http\Resources\Item\ItemResource;
 
 class InvoiceResource extends JsonResource
 {
@@ -23,6 +24,8 @@ class InvoiceResource extends JsonResource
             'sub_total' => (float) $this->sub_total,
             'discount' => (float) $this->discount,
             'grand_total' => (float) $this->grand_total,
+            'paid_amount' => (float) ($this->paid_amount ?? $this->grand_total),
+            'remaining_amount' => (float) ($this->remaining_amount ?? 0),
             'refunded_amount' => (float) $this->refunded_amount,
 
             'notes' => $this->notes,
@@ -63,7 +66,11 @@ class InvoiceResource extends JsonResource
                 return [
                     'id' => $item->id,
                     'item_type' => $item->item_type,
+                    'service_id' => $item->service_id,
+                    'product_id' => $item->product_id,
                     'item_name' => $item->item_name, // الاسم الذي تم حفظه وقت البيع (اللقطة)
+                    'service_name' => $item->item_name,
+                    'service_items' => ItemResource::collection($item->service_items),
                     'unit_price' => (float) $item->unit_price,
                     'quantity' => (int) $item->quantity,
                     'total_price' => (float) $item->total_price,

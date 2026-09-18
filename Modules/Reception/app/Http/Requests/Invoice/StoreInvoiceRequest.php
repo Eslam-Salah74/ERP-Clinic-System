@@ -38,6 +38,7 @@ class StoreInvoiceRequest extends FormRequest
                 Rule::exists('users', 'id')->where('type', UserType::NURSE->value)
             ],
 
+            'paid_amount' => ['nullable', 'numeric', 'min:0'],
             'discount' => ['nullable', 'numeric', 'min:0'],
             'notes' => ['nullable', 'string'],
 
@@ -49,6 +50,15 @@ class StoreInvoiceRequest extends FormRequest
                 'prohibited_if:items.*.item_type,product',
                 'nullable',
                 'exists:services,id'
+            ],
+            'items.*.service_items_ids' => [
+                'prohibited_if:items.*.item_type,product',
+                'nullable',
+                'array'
+            ],
+            'items.*.service_items_ids.*' => [
+                'integer',
+                'exists:items,id'
             ],
             'items.*.product_id' => [
                 'required_if:items.*.item_type,product',

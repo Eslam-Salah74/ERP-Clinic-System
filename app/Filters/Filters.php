@@ -10,6 +10,7 @@ namespace App\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 abstract class Filters
 {
@@ -37,11 +38,17 @@ abstract class Filters
     public function apply($builder)
     {
         $this->builder = $builder;
-        foreach ($this->getFilterAttr() as $name=>$value)
+        foreach ($this->getFilterAttr() as $name => $value)
         {
-            if (method_exists($this,$name))
+            $camel = Str::camel($name);
+
+            if (method_exists($this, $name))
             {
                 $this->$name($value);
+            }
+            elseif (method_exists($this, $camel))
+            {
+                $this->$camel($value);
             }
         }
         return $this->builder;

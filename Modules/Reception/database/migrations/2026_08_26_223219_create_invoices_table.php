@@ -38,6 +38,8 @@ return new class extends Migration
             $table->decimal('sub_total', 10, 2)->default(0.00); // الإجمالي قبل الخصم
             $table->decimal('discount', 10, 2)->default(0.00);  // قيمة الخصم (سواء للموظف أو خصم يدوي)
             $table->decimal('grand_total', 10, 2)->default(0.00); // الصافي المطلوب دفعه
+            $table->decimal('paid_amount', 10, 2)->default(0.00); // المبلغ المدفوع فعلياً
+            $table->decimal('remaining_amount', 10, 2)->default(0.00); // المبلغ المتبقي على الفاتورة
 
             // ده الحقل السحري اللي بيسجل أي فلوس رجعت للمريض عشان المرتجع الجزئي
             $table->decimal('refunded_amount', 10, 2)->default(0.00);

@@ -12,16 +12,26 @@ use Modules\Reception\Filters\Appointment\AppointmentFilter;
 use Modules\Reception\Http\Resources\Appointment\AppointmentResource;
 use Modules\Reception\Models\Appointment;
 use Modules\Reception\Models\Shift; // أضفنا موديل الشفت
+use Modules\Setup\Models\Service;
 use Modules\Setup\Models\Setting;
 
 class AppointmentService
 {
     public function index($request, AppointmentFilter $filter)
     {
-        $data = Appointment::with(['patient', 'doctor', 'service', 'creator', 'shift']) // أضفنا العلاقة للتأكد
-            ->filter($filter)
-            ->latest('appointment_date')
-            ->paginate(10);
+        $perPage = (int) $request->get('per_page', 15);
+        $sortOrder = strtolower($request->get('sort_order', 'desc'));
+
+        $query = Appointment::with(['patient', 'doctor', 'service.items', 'creator', 'shift'])
+            ->filter($filter);
+
+        if ($sortOrder === 'asc') {
+            $query->oldest('appointment_date');
+        } else {
+            $query->latest('appointment_date');
+        }
+
+        $data = $query->paginate($perPage);
 
         return API::newInstance()->isOk('Data retrieved successfully')->setData(AppointmentResource::collection($data))->build();
     }
@@ -69,17 +79,32 @@ class AppointmentService
             }
         }
 
+        // 4. معالجة الأصناف المخزنية المرتبطة بالخدمة (service_items_ids)
+        $customItemsIds = $validated['service_items_ids'] ?? $validated['serviceitemsids'] ?? null;
+
+        if ($customItemsIds !== null) {
+            $validated['service_items_ids'] = array_values(array_unique(array_map('intval', (array) $customItemsIds)));
+        } elseif (!empty($validated['service_id'])) {
+            $service = Service::with('items')->find($validated['service_id']);
+            $validated['service_items_ids'] = $service
+                ? $service->items->pluck('id')->values()->toArray()
+                : [];
+        } else {
+            $validated['service_items_ids'] = [];
+        }
+        unset($validated['serviceitemsids']);
+
         $appointment = Appointment::create($validated);
 
         return API::newInstance()
             ->isCreated('Appointment created successfully')
-            ->setData(new AppointmentResource($appointment->load(['patient', 'doctor', 'service', 'creator', 'shift'])))
+            ->setData(new AppointmentResource($appointment->load(['patient', 'doctor', 'service.items', 'creator', 'shift'])))
             ->build();
     }
 
     public function show($id)
     {
-        $record = Appointment::with(['patient', 'doctor', 'service', 'creator', 'shift'])->find($id);
+        $record = Appointment::with(['patient', 'doctor', 'service.items', 'creator', 'shift'])->find($id);
         if (!$record) {
             return API::newInstance()->isError('Record not found')->build();
         }
@@ -89,11 +114,25 @@ class AppointmentService
     public function update($id, $request)
     {
         $record = Appointment::findOrFail($id);
-        $record->update($request->validated());
+        $validated = $request->validated();
+
+        $customItemsIds = $validated['service_items_ids'] ?? $validated['serviceitemsids'] ?? null;
+
+        if ($customItemsIds !== null) {
+            $validated['service_items_ids'] = array_values(array_unique(array_map('intval', (array) $customItemsIds)));
+        } elseif (isset($validated['service_id']) && $validated['service_id'] != $record->service_id) {
+            $service = Service::with('items')->find($validated['service_id']);
+            $validated['service_items_ids'] = $service
+                ? $service->items->pluck('id')->values()->toArray()
+                : [];
+        }
+        unset($validated['serviceitemsids']);
+
+        $record->update($validated);
 
         return API::newInstance()
             ->isOk('Updated successfully')
-            ->setData(new AppointmentResource($record->load(['patient', 'doctor', 'service', 'creator', 'shift'])))
+            ->setData(new AppointmentResource($record->load(['patient', 'doctor', 'service.items', 'creator', 'shift'])))
             ->build();
     }
 
@@ -115,7 +154,7 @@ class AppointmentService
 
         return API::newInstance()
             ->isOk('تم تحديث حالة الحجز بنجاح')
-            ->setData(new AppointmentResource($appointment->load(['patient', 'doctor', 'service', 'creator', 'shift'])))
+            ->setData(new AppointmentResource($appointment->load(['patient', 'doctor', 'service.items', 'creator', 'shift'])))
             ->build();
     }
 }

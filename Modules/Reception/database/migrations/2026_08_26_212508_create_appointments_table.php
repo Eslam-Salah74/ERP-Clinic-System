@@ -22,6 +22,7 @@ return new class extends Migration
             $table->foreign('nurse_id')->references('id')->on('users')->onDelete('set null'); // 2. غيرنا cascade إلى set null للأمان
             
             $table->unsignedBigInteger('service_id')->nullable();
+            $table->json('service_items_ids')->nullable();
 
 
             $table->unsignedBigInteger('shift_id')->nullable(); // الشفت المرتبط به الحجز

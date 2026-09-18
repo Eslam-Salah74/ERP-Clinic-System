@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Modules\Reception\Filters\Invoice\InvoiceFilter;
+use Modules\Reception\Http\Requests\Invoice\PayInvoiceRequest;
 use Modules\Reception\Http\Requests\Invoice\RefundInvoiceRequest;
 use Modules\Reception\Http\Requests\Invoice\StoreInvoiceRequest;
 use Modules\Reception\Http\Requests\Invoice\UpdateInvoiceRequest;
@@ -27,7 +28,7 @@ class InvoiceController extends Controller implements HasMiddleware
             new Middleware('permission:read invoices', only: ['index']),
             new Middleware('permission:show invoices', only: ['show']),
             new Middleware('permission:create invoices', only: ['store']),
-            new Middleware('permission:update invoices', only: ['update']),
+            new Middleware('permission:update invoices', only: ['update', 'payRemaining']),
             new Middleware('permission:delete invoices', only: ['destroy']),
         ];
     }
@@ -60,5 +61,10 @@ class InvoiceController extends Controller implements HasMiddleware
     public function refund($id, RefundInvoiceRequest $request)
     {
         return $this->invoice->refund($id, $request);
+    }
+
+    public function payRemaining($id, PayInvoiceRequest $request)
+    {
+        return $this->invoice->payRemaining($id, $request);
     }
 }

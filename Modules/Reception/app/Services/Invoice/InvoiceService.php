@@ -27,7 +27,7 @@ class InvoiceService
     public function index($request, InvoiceFilter $filter)
     {
         $data = Invoice::filter($filter)
-            ->with(['items', 'patient', 'doctor', 'nurse', 'creator', 'shift'])
+            ->with(['items.service.items', 'patient', 'doctor', 'nurse', 'creator', 'shift'])
             ->latest()
             ->paginate(10);
 
@@ -58,6 +58,7 @@ class InvoiceService
                 $appointmentId = $validated['appointment_id'] ?? null;
                 $nurseId = $validated['nurse_id'] ?? null;
                 $doctorId = $validated['doctor_id'] ?? null;
+                $appointment = null;
 
                 if ($invoiceType === InvoiceTypeEnum::DIRECT_SALE->value) {
                     $appointmentId = null;
@@ -70,6 +71,7 @@ class InvoiceService
 
                         if ($todayAppointment) {
                             $appointmentId = $todayAppointment->id;
+                            $appointment = $todayAppointment;
 
                             $todayAppointment->update([
                                 'status' => AppointmentStatusEnum::COMPLETED->value,
@@ -85,6 +87,7 @@ class InvoiceService
                                 'doctor_id' => $doctorId,
                                 'nurse_id' => $nurseId,
                                 'service_id' => $validated['items'][0]['service_id'] ?? null,
+                                'service_items_ids' => $validated['items'][0]['service_items_ids'] ?? null,
                                 'shift_id' => $activeShift->id,
                                 'appointment_date' => now(),
                                 'visit_type' => $invoiceType,
@@ -94,6 +97,7 @@ class InvoiceService
                             ]);
 
                             $appointmentId = $dummyAppointment->id;
+                            $appointment = $dummyAppointment;
                         }
                     } else {
                         $appointment = Appointment::find($appointmentId);
@@ -138,6 +142,7 @@ class InvoiceService
                     $itemName = '';
                     $unitPrice = 0;
                     $serviceItemsToDeduct = [];
+                    $consumedIds = [];
                     $quantity = isset($item['quantity']) && !empty($item['quantity']) ? (int)$item['quantity'] : 1;
 
                     if ($item['item_type'] === 'service') {
@@ -146,10 +151,29 @@ class InvoiceService
                             throw new \Exception('الخدمة المحددة غير موجودة في قاعدة البيانات.');
                         }
                         $itemName = $service->name;
-                        $unitPrice = $service->price;
+                        $serviceBasePrice = (float) $service->price;
 
-                        foreach ($service->items as $product) {
-                            $requiredQty = $product->pivot->quantity * $quantity;
+                        // تحديد الأصناف المرتبطة بالخدمة:
+                        // 1. إذا تم تحديدها صراحة في العنصر service_items_ids
+                        // 2. أو إذا كان الحجز المرتبط يحتوي على service_items_ids
+                        // 3. أو جميع الأصناف المرتبطة بالخدمة كإعداد افتراضي
+                        $chosenItemsIds = $item['service_items_ids'] ?? null;
+                        if ($chosenItemsIds === null && isset($appointment) && $appointment && !empty($appointment->service_items_ids)) {
+                            $chosenItemsIds = $appointment->service_items_ids;
+                        }
+
+                        $serviceItems = $service->items;
+                        if ($chosenItemsIds !== null) {
+                            $serviceItems = $serviceItems->filter(function ($product) use ($chosenItemsIds) {
+                                return in_array($product->id, (array) $chosenItemsIds)
+                                    || (isset($product->pivot->id) && in_array($product->pivot->id, (array) $chosenItemsIds));
+                            })->values();
+                        }
+
+                        $itemsTotalPrice = 0;
+                        foreach ($serviceItems as $product) {
+                            $qtyPerService = (float) ($product->pivot->quantity ?? 1);
+                            $requiredQty = $qtyPerService * $quantity;
                             $inventoryItem = Item::where('id', $product->id)->lockForUpdate()->first();
 
                             if (!$inventoryItem || $inventoryItem->current_stock < $requiredQty) {
@@ -157,11 +181,22 @@ class InvoiceService
                                 throw new \Exception("الكمية المطلوبة من المادة المستهلكة ({$missingName}) غير متوفرة في المخزن لتنفيذ خدمة ({$itemName}).");
                             }
 
+                            // سعر المستلزم الطبي المخصص لهذه الخدمة (من جدول الربط service_items) إن وجد، وإلا سعر بيع الصنف في المخزن مضروباً في كميته
+                            $itemPrice = isset($product->pivot->price) && (float) $product->pivot->price > 0
+                                ? (float) $product->pivot->price
+                                : ((float) $inventoryItem->selling_price * $qtyPerService);
+
+                            $itemsTotalPrice += $itemPrice;
+                            $consumedIds[] = $product->id;
+
                             $serviceItemsToDeduct[] = [
                                 'product_id' => $product->id,
                                 'quantity' => $requiredQty
                             ];
                         }
+
+                        // سعر الوحدة = سعر الخدمة الأساسي + مجموع أسعار المواد المستهلكة
+                        $unitPrice = $serviceBasePrice + $itemsTotalPrice;
                     } else {
                         $inventoryItem = Item::where('id', $item['product_id'])->lockForUpdate()->first();
                         if (!$inventoryItem) {
@@ -173,7 +208,7 @@ class InvoiceService
                         }
 
                         $itemName = $inventoryItem->name;
-                        $unitPrice = $inventoryItem->selling_price;
+                        $unitPrice = (float) $inventoryItem->selling_price;
                     }
 
                     $totalPrice = $unitPrice * $quantity;
@@ -183,6 +218,7 @@ class InvoiceService
                         'item_type' => $item['item_type'],
                         'service_id' => $item['service_id'] ?? null,
                         'product_id' => $item['product_id'] ?? null,
+                        'service_items_ids' => !empty($consumedIds) ? array_values(array_unique($consumedIds)) : null,
                         'item_name' => $itemName,
                         'unit_price' => $unitPrice,
                         'quantity' => $quantity,
@@ -203,6 +239,19 @@ class InvoiceService
 
                 $grandTotal = max(0, $subTotal - $discount);
 
+                // 1. تحديد المبلغ المدفوع والمتبقي وحالة الفاتورة
+                $paidAmount = isset($validated['paid_amount']) ? (float) $validated['paid_amount'] : $grandTotal;
+                $paidAmount = min($paidAmount, $grandTotal);
+                $remainingAmount = max(0, $grandTotal - $paidAmount);
+
+                if ($paidAmount >= $grandTotal) {
+                    $status = InvoiceStatusEnum::PAID->value;
+                } elseif ($paidAmount > 0) {
+                    $status = InvoiceStatusEnum::PARTIALLY_PAID->value;
+                } else {
+                    $status = InvoiceStatusEnum::UNPAID->value;
+                }
+
                 $invoice = Invoice::create([
                     'invoice_number' => $invoiceNumber,
                     'patient_id' => $patientId,
@@ -212,11 +261,13 @@ class InvoiceService
                     'shift_id' => $activeShift->id,
                     'queue_number' => $queueNumber,
                     'type' => $invoiceType,
-                    'status' => InvoiceStatusEnum::PAID->value,
+                    'status' => $status,
                     'payment_method' => $validated['payment_method'],
                     'sub_total' => $subTotal,
                     'discount' => $discount,
                     'grand_total' => $grandTotal,
+                    'paid_amount' => $paidAmount,
+                    'remaining_amount' => $remainingAmount,
                     'notes' => $validated['notes'] ?? null,
                     'created_by' => $userId,
                 ]);
@@ -242,21 +293,21 @@ class InvoiceService
                     }
                 }
 
-                if ($grandTotal > 0) {
+                if ($paidAmount > 0) {
                     Transaction::create([
                         'transaction_number' => 'TRX-' . date('Y') . '-' . strtoupper(uniqid()),
                         'invoice_id' => $invoice->id,
                         'shift_id' => $activeShift->id,
                         'type' => TransactionTypeEnum::INCOME->value,
                         'payment_method' => $validated['payment_method'],
-                        'amount' => $grandTotal,
-                        'description' => 'تحصيل فاتورة مبيعات رقم ' . $invoice->invoice_number,
+                        'amount' => $paidAmount,
+                        'description' => 'تحصيل فاتورة مبيعات رقم ' . $invoice->invoice_number . ($status === InvoiceStatusEnum::PARTIALLY_PAID->value ? ' (دفعة جزئية)' : ''),
                         'created_by' => $userId,
                     ]);
                 }
 
                 return API::newInstance()->isCreated('تم إنشاء الفاتورة بنجاح.')
-                    ->setData(new InvoiceResource($invoice->load(['items', 'patient', 'doctor', 'nurse', 'creator', 'shift'])))
+                    ->setData(new InvoiceResource($invoice->load(['items.service.items', 'patient', 'doctor', 'nurse', 'creator', 'shift'])))
                     ->build();
             });
         } catch (\Exception $e) {
@@ -290,7 +341,7 @@ class InvoiceService
                 $refundAmountTotal = 0;
 
                 if ($isFullRefund) {
-                    $refundAmountTotal = $invoice->grand_total - $invoice->refunded_amount;
+                    $refundAmountTotal = max(0, (float) $invoice->paid_amount - (float) $invoice->refunded_amount);
 
                     foreach ($invoice->items as $invoiceItem) {
                         $qtyToReturn = $invoiceItem->quantity - $invoiceItem->returned_qty;
@@ -318,7 +369,7 @@ class InvoiceService
 
                     $invoice->update([
                         'status' => InvoiceStatusEnum::REFUNDED->value,
-                        'refunded_amount' => $invoice->grand_total
+                        'refunded_amount' => $invoice->paid_amount
                     ]);
 
                     if ($invoice->appointment_id) {
@@ -380,7 +431,67 @@ class InvoiceService
                     ]);
                 }
 
-                return API::newInstance()->isOk('تمت عملية الاسترداد بنجاح.')->setData(new InvoiceResource($invoice->fresh(['items', 'patient', 'doctor', 'nurse', 'creator', 'shift'])))->build();
+                return API::newInstance()->isOk('تمت عملية الاسترداد بنجاح.')->setData(new InvoiceResource($invoice->fresh(['items.service.items', 'patient', 'doctor', 'nurse', 'creator', 'shift'])))->build();
+            });
+        } catch (\Exception $e) {
+            return API::newInstance()->isError($e->getMessage())->build();
+        }
+    }
+
+    /**
+     * سداد دفعة من المبلغ المتبقي على الفاتورة
+     */
+    public function payRemaining($id, $request)
+    {
+        $validated = $request->validated();
+        $userId = Auth::id();
+
+        $activeShift = Shift::where('user_id', $userId)
+            ->where('status', ShiftStatusEnum::OPEN->value)
+            ->first();
+
+        if (!$activeShift) {
+            return API::newInstance()->isError('لا يمكنك سداد الفاتورة. يجب فتح شفت أولاً.')->build();
+        }
+
+        try {
+            return DB::transaction(function () use ($id, $validated, $activeShift, $userId) {
+                $invoice = Invoice::lockForUpdate()->findOrFail($id);
+
+                if ($invoice->remaining_amount <= 0 || $invoice->status === InvoiceStatusEnum::PAID) {
+                    return API::newInstance()->isError('هذه الفاتورة مدفوعة بالكامل بالفعل.')->build();
+                }
+
+                $payAmount = (float) $validated['amount'];
+                if ($payAmount > (float) $invoice->remaining_amount) {
+                    return API::newInstance()->isError("المبلغ المدخل ({$payAmount}) أكبر من المبلغ المتبقي على الفاتورة ({$invoice->remaining_amount}).")->build();
+                }
+
+                $newPaidAmount = (float) $invoice->paid_amount + $payAmount;
+                $newRemainingAmount = max(0, (float) $invoice->remaining_amount - $payAmount);
+                $newStatus = $newRemainingAmount <= 0 ? InvoiceStatusEnum::PAID->value : InvoiceStatusEnum::PARTIALLY_PAID->value;
+
+                $invoice->update([
+                    'paid_amount' => $newPaidAmount,
+                    'remaining_amount' => $newRemainingAmount,
+                    'status' => $newStatus,
+                ]);
+
+                Transaction::create([
+                    'transaction_number' => 'TRX-' . date('Y') . '-' . strtoupper(uniqid()),
+                    'invoice_id' => $invoice->id,
+                    'shift_id' => $activeShift->id,
+                    'type' => TransactionTypeEnum::INCOME->value,
+                    'payment_method' => $validated['payment_method'],
+                    'amount' => $payAmount,
+                    'description' => 'سداد جزء من متبقي فاتورة رقم ' . $invoice->invoice_number,
+                    'created_by' => $userId,
+                ]);
+
+                return API::newInstance()
+                    ->isOk('تم تسجيل دفعة الفاتورة بنجاح.')
+                    ->setData(new InvoiceResource($invoice->load(['items.service.items', 'patient', 'doctor', 'nurse', 'creator', 'shift'])))
+                    ->build();
             });
         } catch (\Exception $e) {
             return API::newInstance()->isError($e->getMessage())->build();
@@ -389,7 +500,7 @@ class InvoiceService
 
     public function show($id)
     {
-        $record = Invoice::with(['items', 'patient', 'doctor', 'nurse', 'shift', 'creator'])->find($id);
+        $record = Invoice::with(['items.service.items', 'patient', 'doctor', 'nurse', 'shift', 'creator'])->find($id);
         if (!$record) return API::newInstance()->isError('Record not found')->build();
         return API::newInstance()->isOk('Data retrieved successfully')->setData(new InvoiceResource($record))->build();
     }
@@ -398,7 +509,7 @@ class InvoiceService
     {
         $record = Invoice::findOrFail($id);
         $record->update($request->validated());
-        return API::newInstance()->isOk('Updated successfully')->setData(new InvoiceResource($record->load(['items', 'patient', 'doctor', 'nurse', 'creator', 'shift'])))->build();
+        return API::newInstance()->isOk('Updated successfully')->setData(new InvoiceResource($record->load(['items.service.items', 'patient', 'doctor', 'nurse', 'creator', 'shift'])))->build();
     }
 
     public function destroy($id)

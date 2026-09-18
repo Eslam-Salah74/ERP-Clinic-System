@@ -19,9 +19,12 @@ return new class extends Migration
             $table->string('item_type');
 
             // لو كان خدمة طبية
-           $table->unsignedBigInteger('service_id')->nullable();
+            $table->unsignedBigInteger('service_id')->nullable();
             // لو كان منتج (هنربطها بجدول المنتجات لما نبني موديول المخازن، حالياً نسيبها unsignedBigInteger)
             $table->unsignedBigInteger('product_id')->nullable();
+
+            // معرفات المستلزمات الطبية المستهلكة مع الخدمة
+            $table->json('service_items_ids')->nullable();
 
             // اسم العنصر عشان لو الخدمة أو المنتج اتحذفوا من السيستم، يفضل الاسم موجود في الفاتورة القديمة
             $table->string('item_name');

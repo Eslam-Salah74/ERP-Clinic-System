@@ -39,6 +39,10 @@ class UpdateAppointmentRequest extends FormRequest
             ],
 
             'service_id' => ['sometimes', 'required', 'exists:services,id'],
+            'service_items_ids' => ['nullable', 'array'],
+            'service_items_ids.*' => ['integer', 'exists:items,id'],
+            'serviceitemsids' => ['nullable', 'array'],
+            'serviceitemsids.*' => ['integer', 'exists:items,id'],
             'appointment_date' => ['sometimes', 'required', 'date'],
             'visit_type' => ['nullable', new Enum(VisitTypeEnum::class)],
             'status' => ['nullable', new Enum(AppointmentStatusEnum::class)],

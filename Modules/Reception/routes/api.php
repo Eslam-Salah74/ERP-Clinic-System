@@ -18,6 +18,7 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
 
     Route::apiResource('invoices', InvoiceController::class);
     Route::post('invoices/{id}/refund', [InvoiceController::class, 'refund']);
+    Route::post('invoices/{id}/pay', [InvoiceController::class, 'payRemaining']);
 
     Route::apiResource('follow-ups', FollowUpController::class);
     Route::patch('follow-ups/{id}/status', [FollowUpController::class, 'changeStatus']);

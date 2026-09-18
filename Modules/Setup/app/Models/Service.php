@@ -35,9 +35,9 @@ class Service extends Model
     }
 
     public function items()
-{
-    return $this->belongsToMany(Item::class, 'service_items')
-                ->withPivot('quantity')
-                ->withTimestamps();
-}
+    {
+        return $this->belongsToMany(Item::class, 'service_items')
+                    ->withPivot('id', 'quantity', 'price')
+                    ->withTimestamps();
+    }
 }

@@ -7,17 +7,22 @@ use Modules\Setup\Filters\Service\ServiceFilter;
 use Modules\Setup\Http\Resources\Service\ServiceResource;
 use Modules\Setup\Enums\ServiceTypeEnum;
 use App\Support\API;
+use Illuminate\Support\Facades\DB;
 
 class ServiceService
 {
     public function index($request, ServiceFilter $filter)
     {
-        // إضافة with('items') لعرض المنتجات المرتبطة بالجلسات إن وجدت
-        $data = Service::with(['department', 'items'])
+        $perPage = $request->get('per_page', 10);
+        $query = Service::with(['department', 'items'])
             ->filter($filter)
             ->reorder()
-            ->orderBy('id', 'desc')
-            ->paginate(10);
+            ->orderBy('id', 'desc');
+
+        // جلب كل الخدمات (مثلاً للقوائم المنسدلة Dropdown) أو الترقيم الافتراضي
+        $data = ($request->boolean('all') || $request->get('paginate') === 'false')
+            ? $query->get()
+            : $query->paginate($perPage);
 
         return API::newInstance()
             ->isOk('Data retrieved successfully')
@@ -27,22 +32,30 @@ class ServiceService
 
     public function store($request)
     {
-        // 1. إنشاء الخدمة الأساسية بالبيانات المُتحقق منها
-        $service = Service::create($request->validated());
+        return DB::transaction(function () use ($request) {
+            $validated = $request->validated();
 
-        // 2. ربط المنتجات بجدول service_items لو الخدمة مش كشف (consultation) وتم إرسال items
-        if ($service->type !== ServiceTypeEnum::CONSULTATION && $request->has('items') && !empty($request->items)) {
-            $syncData = [];
-            foreach ($request->items as $item) {
-                $syncData[$item['item_id']] = ['quantity' => $item['quantity']];
+            // 1. إنشاء الخدمة الأساسية
+            $service = Service::create($validated);
+
+            // 2. ربط المنتجات بجدول service_items للخدمات التي تقبل مواد مخزنية (session أو device)
+            $serviceType = $service->type instanceof ServiceTypeEnum ? $service->type : ServiceTypeEnum::tryFrom($service->type);
+
+            if ($serviceType !== ServiceTypeEnum::CONSULTATION && !empty($validated['items'])) {
+                $service->items()->detach();
+                foreach ($validated['items'] as $item) {
+                    $service->items()->attach($item['item_id'], [
+                        'quantity' => $item['quantity'],
+                        'price'    => $item['price'] ?? 0,
+                    ]);
+                }
             }
-            $service->items()->sync($syncData);
-        }
 
-        return API::newInstance()
-            ->isCreated('Created successfully')
-            ->setData(new ServiceResource($service->load(['department', 'items'])))
-            ->build();
+            return API::newInstance()
+                ->isCreated('Created successfully')
+                ->setData(new ServiceResource($service->load(['department', 'items'])))
+                ->build();
+        });
     }
 
     public function show($id)
@@ -62,28 +75,37 @@ class ServiceService
 
     public function update($id, $request)
     {
-        $record = Service::findOrFail($id);
+        return DB::transaction(function () use ($id, $request) {
+            $record = Service::findOrFail($id);
+            $validated = $request->validated();
 
-        // 1. تحديث بيانات الخدمة الأساسية
-        $record->update($request->validated());
+            // 1. تحديث بيانات الخدمة الأساسية
+            $record->update($validated);
 
-        // 2. تحديث الربط بالمخزن (لو تم إرسال items جديدة)
-        if ($record->type !== ServiceTypeEnum::CONSULTATION && $request->has('items')) {
-            $syncData = [];
-            foreach ($request->items as $item) {
-                $syncData[$item['item_id']] = ['quantity' => $item['quantity']];
+            // 2. تحديث الربط بالمخزن
+            $serviceType = $record->type instanceof ServiceTypeEnum ? $record->type : ServiceTypeEnum::tryFrom($record->type);
+
+            if ($serviceType === ServiceTypeEnum::CONSULTATION) {
+                // لو تحولت الخدمة لكشف، يتم تفريغ أي مواد مخزنية مرتبطة بها
+                $record->items()->detach();
+            } elseif (array_key_exists('items', $validated)) {
+                // لو تم إرسال items صراحة مع الجلسة أو الجهاز
+                $record->items()->detach();
+                if (!empty($validated['items'])) {
+                    foreach ($validated['items'] as $item) {
+                        $record->items()->attach($item['item_id'], [
+                            'quantity' => $item['quantity'],
+                            'price'    => $item['price'] ?? 0,
+                        ]);
+                    }
+                }
             }
-            // sync هتقوم بالواجب: تمسح القديم وتزود الجديد أوتوماتيك
-            $record->items()->sync($syncData);
-        } else {
-            // لو اتحولت لكشف أو مبعتش items، بنفضي جدول الربط بتاعها احتياطياً
-            $record->items()->detach();
-        }
 
-        return API::newInstance()
-            ->isOk('Updated successfully')
-            ->setData(new ServiceResource($record->load(['department', 'items'])))
-            ->build();
+            return API::newInstance()
+                ->isOk('Updated successfully')
+                ->setData(new ServiceResource($record->load(['department', 'items'])))
+                ->build();
+        });
     }
 
     public function destroy($id)

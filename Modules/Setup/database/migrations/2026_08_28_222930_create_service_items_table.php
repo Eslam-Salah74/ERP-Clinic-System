@@ -13,6 +13,7 @@ return new class extends Migration
             $table->foreignId('service_id')->constrained('services')->cascadeOnDelete();
             $table->foreignId('item_id')->constrained('items')->cascadeOnDelete();
             $table->decimal('quantity', 8, 2);
+            $table->decimal('price', 10, 2)->default(0);
             $table->timestamps();
         });
     }
