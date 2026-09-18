@@ -30,6 +30,24 @@ class Patient extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    // جميع حجوزات المريض
+    public function appointments()
+    {
+        return $this->hasMany(Appointment::class, 'patient_id');
+    }
+
+    // جميع فواتير المريض
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class, 'patient_id');
+    }
+
+    // جميع متابعات المريض
+    public function followUps()
+    {
+        return $this->hasMany(FollowUp::class, 'patient_id');
+    }
+
     public function scopeFilter($query, PatientFilter $filter)
     {
         return $filter->apply($query);

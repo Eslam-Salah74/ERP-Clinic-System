@@ -12,7 +12,21 @@ class PatientService
 {
     public function index($request, PatientFilter $filter)
     {
-        $data = Patient::with('creator')->filter($filter)->latest()->paginate(10);
+        $perPage = (int) $request->get('per_page', 10);
+        $withRelations = ['creator', 'invoices'];
+
+        if ($request->boolean('with_history') || $request->boolean('include_details')) {
+            $withRelations['appointments'] = fn($q) => $q->with(['doctor', 'service.items', 'shift'])->latest('appointment_date');
+            $withRelations['invoices'] = fn($q) => $q->with(['doctor', 'items.service.items', 'shift', 'creator'])->latest();
+            $withRelations['followUps'] = fn($q) => $q->with(['doctor', 'appointment', 'shift'])->latest('follow_up_date');
+        }
+
+        $data = Patient::with($withRelations)
+            ->withCount(['appointments', 'invoices', 'followUps'])
+            ->filter($filter)
+            ->latest()
+            ->paginate($perPage);
+
         return API::newInstance()->isOk('Data retrieved successfully')->setData(PatientResource::collection($data))->build();
     }
 
@@ -23,12 +37,20 @@ class PatientService
         $validated['created_by'] = Auth::id();
 
         $data = Patient::create($validated);
-        return API::newInstance()->isCreated('Created successfully')->setData(new PatientResource($data->load('creator')))->build();
+        return API::newInstance()->isCreated('Created successfully')->setData(new PatientResource($data->load(['creator', 'appointments', 'invoices', 'followUps'])))->build();
     }
 
     public function show($id)
     {
-        $record = Patient::with('creator')->find($id);
+        $record = Patient::with([
+            'creator',
+            'appointments' => fn($q) => $q->with(['doctor', 'service.items', 'shift'])->latest('appointment_date'),
+            'invoices' => fn($q) => $q->with(['doctor', 'items.service.items', 'shift', 'creator'])->latest(),
+            'followUps' => fn($q) => $q->with(['doctor', 'appointment', 'shift'])->latest('follow_up_date'),
+        ])
+        ->withCount(['appointments', 'invoices', 'followUps'])
+        ->find($id);
+
         if (!$record) {
             return API::newInstance()->isError('Record not found')->build();
         }
@@ -39,7 +61,7 @@ class PatientService
     {
         $record = Patient::findOrFail($id);
         $record->update($request->validated());
-        return API::newInstance()->isOk('Updated successfully')->setData(new PatientResource($record->load('creator')))->build();
+        return API::newInstance()->isOk('Updated successfully')->setData(new PatientResource($record->load(['creator', 'appointments', 'invoices', 'followUps'])))->build();
     }
 
     public function destroy($id)
