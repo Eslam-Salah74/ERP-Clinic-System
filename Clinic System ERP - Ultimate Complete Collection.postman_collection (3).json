@@ -1,11 +1,11 @@
 {
   "info": {
-    "_postman_id": "e202a42e-1a25-4f24-a33c-58916159c8d6",
+    "_postman_id": "ca6dab75-f39f-46ee-a56d-f6cf5ad4ee1b",
     "name": "Clinic System ERP - Ultimate Complete Collection",
     "description": "الملف الشامل والنهائي لكل مسارات وعمليات السيستم الطبي (Auth, Setup, Inventory, Reception, Shifts, Invoices, Patients, Appointments)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "27537915",
-    "_collection_link": "https://go.postman.co/collection/27537915-e202a42e-1a25-4f24-a33c-58916159c8d6?source=collection_link"
+    "_collection_link": "https://go.postman.co/collection/27537915-ca6dab75-f39f-46ee-a56d-f6cf5ad4ee1b?source=collection_link"
   },
   "item": [
     {
@@ -725,6 +725,13 @@
                   ],
                   "path": [
                     "services"
+                  ],
+                  "query": [
+                    {
+                      "key": "department_id",
+                      "value": "2",
+                      "disabled": true
+                    }
                   ]
                 }
               },
@@ -747,7 +754,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": " // لو النوع session لازم تبعتلي  items\r\n/*{\r\n    \"name\": \"كشف عادي\",\r\n    \"price\": 300,\r\n    \"department_id\": 1,\r\n    \"type\": \"consultation\"\r\n}*/\r\n/*{\r\n    \"name\": \"جهاز الفركشن\",\r\n    \"price\": 300,\r\n    \"department_id\": 1,\r\n    \"type\": \"device\"\r\n}*/\r\n{\r\n    \"name\": \"Test5ml 64نص مللي\",\r\n    \"price\": 2300,\r\n    \"department_id\": 1,\r\n    \"type\": \"session\",\r\n    \"items\": [\r\n        {\r\n            \"item_id\": 64,\r\n            \"quantity\": 0.5\r\n        }\r\n    ]\r\n}",
+                  "raw": " // لو النوع session or device لازم تبعتلي  items\r\n/*{\r\n    \"name\": \"كشف عادي\",\r\n    \"price\": 300,\r\n    \"department_id\": 1,\r\n    \"type\": \"consultation\"\r\n}*/\r\n\r\n{\r\n    \"name\": \"جهاز 0000\",\r\n    \"price\": 300,\r\n    \"department_id\": 1,\r\n    \"type\": \"device\", \r\n    \"items\": [\r\n        {\r\n            \"item_id\": 1,\r\n            \"quantity\": 0.5,\r\n            \"price\":200\r\n        },\r\n        {\r\n            \"item_id\": 1,\r\n            \"quantity\": 0.25,\r\n            \"price\":400\r\n        }\r\n    ]\r\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -782,13 +789,13 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/services/1",
+                  "raw": "{{base_url}}/services/24",
                   "host": [
                     "{{base_url}}"
                   ],
                   "path": [
                     "services",
-                    "1"
+                    "24"
                   ]
                 }
               },
@@ -1143,7 +1150,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "//Note: unit: ml مللي, gram جرام,piece عدد / قطعة,strip شريط,box علبة,vial فايل (أمبول / زجاجة ميزو)\r\n\r\n//Note type:'consumable'; //, مستهلكات طبية وحقن (سعر البيع 0 - تُباع داخل الجلسات) لو النوع ده ابعت السعر ب 0وتخفي الخانه \r\n//          'retailable'; // منتجات صيدلية وتجزئة (لها سعر بيع مباشر)\r\n//\"selling_price\": 3200, بنشيله لو \"type\":\"consumable\"\r\n{\"name\": \"test5ml\", \"unit\":\"vial\",\"stock_unit\":\"ml\",\"conversion_factor\":5,\"current_stock\": 0, \"type\":\"consumable\",\"is_active\":true}",
+                  "raw": "//Note: unit: ml مللي, gram جرام,piece عدد / قطعة,strip شريط,box علبة,vial فايل (أمبول / زجاجة ميزو)\r\n\r\n//Note type:'consumable'; //, مستهلكات طبية وحقن (سعر البيع 0 - تُباع داخل الجلسات) لو النوع ده ابعت السعر ب 0وتخفي الخانه \r\n//          'retailable'; // منتجات صيدلية وتجزئة (لها سعر بيع مباشر)\r\n//\"selling_price\": 3200, بنشيله لو \"type\":\"consumable\"\r\n{\"name\": \"ميزو10مم\", \"unit\":\"vial\",\"stock_unit\":\"ml\",\"conversion_factor\":10,\"current_stock\": 0, \"type\":\"consumable\",\"is_active\":true}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -1178,13 +1185,13 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/items/1",
+                  "raw": "{{base_url}}/items/65",
                   "host": [
                     "{{base_url}}"
                   ],
                   "path": [
                     "items",
-                    "1"
+                    "65"
                   ]
                 }
               },
@@ -1304,7 +1311,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\"supplier_id\": 1, \r\n\"items\": [\r\n    {\"item_id\": 64, \"quantity\": 5, \"purchase_price\": 6000}\r\n    ]\r\n}",
+                  "raw": "{\"supplier_id\": 1, \r\n\"items\": [\r\n    {\"item_id\": 65, \"quantity\": 2, \"purchase_price\": 6000}\r\n    ]\r\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -1566,12 +1573,73 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/appointments",
+                  "raw": "{{base_url}}/appointments?phone=01012345678",
                   "host": [
                     "{{base_url}}"
                   ],
                   "path": [
                     "appointments"
+                  ],
+                  "query": [
+                    {
+                      "key": "phone",
+                      "value": "01012345678"
+                    },
+                    {
+                      "key": "patient_name",
+                      "value": "محمد",
+                      "disabled": true
+                    },
+                    {
+                      "key": "search",
+                      "value": "01012345678",
+                      "disabled": true
+                    },
+                    {
+                      "key": "appointment_date",
+                      "value": "2026-09-18",
+                      "disabled": true
+                    },
+                    {
+                      "key": "from_date",
+                      "value": "2026-09-01",
+                      "disabled": true
+                    },
+                    {
+                      "key": "to_date",
+                      "value": "2026-09-30",
+                      "disabled": true
+                    },
+                    {
+                      "key": "status",
+                      "value": "pending",
+                      "disabled": true
+                    },
+                    {
+                      "key": "doctor_id",
+                      "value": "2",
+                      "disabled": true
+                    },
+                    {
+                      "key": "service_id",
+                      "value": "25",
+                      "disabled": true
+                    },
+                    {
+                      "key": "visit_type",
+                      "value": "consultation",
+                      "disabled": true
+                    },
+                    {
+                      "key": "sort_order",
+                      "value": "asc",
+                      "disabled": true
+                    },
+                    {
+                      "key": "per_page",
+                      "value": "15",
+                      "disabled": true
+                    }
                   ]
                 }
               },
@@ -1594,7 +1662,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\"patient_id\": 1, \"doctor_id\": 2, \"appointment_date\": \"2026-08-28\"\r\n,\"service_id\": 1,\"visit_type\": \"consultation\", \"notes\": \"حجز مبدئي تجريبي للكشف\"}\r\n\r\n//Note: visit_type => consultation (كشف) OR follow_up (متابعة) OR session (جلسة)",
+                  "raw": "{\r\n  \"patient_id\": 1,\r\n  \"doctor_id\": 2,\r\n  \"service_id\": 24,\r\n  \"serviceitemsids\": [1,2],\r\n  \"appointment_date\": \"2026-08-28 10:00:00\",\r\n  \"visit_type\": \"consultation\",\r\n  \"notes\": \"حجز مبدئي تجريبي للكشف\"\r\n}\r\n\r\n\r\n//Note: visit_type => consultation (كشف) OR follow_up (متابعة) OR session (جلسة)",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -1873,7 +1941,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": " //Note:Invoice Type => 1.consultation كشف / استشارة (يتطلب دكتور)\r\n //                     2.session جلسة طبية (يتطلب دكتور وممكن ممرضة)\r\n //                     3.direct_sale بيع مباشر أدوية/مستلزمات (لا يتطلب دكتور)  \r\n\r\n //1. الحالة العامة: كشف طبي أو جلسة (مع الكتشف الذكي للحجز أو الكشف الفوري Walk-in)\r\n{\r\n    \"patient_id\": 1,\r\n    \"appointment_id\": null,\r\n    \"type\": \"consultation\",\r\n    \"payment_method\": \"cash\",\r\n    \"doctor_id\": 2,\r\n    \"nurse_id\": null,\r\n    \"discount\": 0,\r\n    \"notes\": \"كشف طبي شامل مع أدوية من الصيدلية\",\r\n    \"items\": [\r\n        {\r\n            \"item_type\": \"service\",\r\n            \"service_id\": 23\r\n        }\r\n        //,\r\n        // {\r\n        //     \"item_type\": \"product\",\r\n        //     \"product_id\": 1,\r\n        //     \"quantity\": 3\r\n        // }\r\n    ]\r\n}\r\n//2. حالة مبيعات صيدلية مباشرة (direct_sale)\r\n// {\r\n//     \"patient_id\": 1,\r\n//     \"appointment_id\": null,\r\n//     \"type\": \"direct_sale\",\r\n//     \"payment_method\": \"cash\",\r\n//     \"doctor_id\": null,\r\n//     \"nurse_id\": null,\r\n//     \"discount\": 0,\r\n//     \"notes\": \"شراء أدوية مباشرة من الصيدلية بدون كشف\",\r\n//     \"items\": [\r\n//         {\r\n//             \"item_type\": \"product\",\r\n//             \"service_id\": null,\r\n//             \"product_id\": 1,\r\n//             \"quantity\": 3\r\n//         }\r\n//     ]\r\n// }\r\n//3. حالة إرسال appointment_id صراحة (حجز مسبق معروف رقمه)\r\n// {\r\n//     \"patient_id\": 1,\r\n//     \"appointment_id\": 4,\r\n//     \"type\": \"session\",\r\n//     \"payment_method\": \"cash\",\r\n//     \"doctor_id\": 2,\r\n//     \"nurse_id\": null,\r\n//     \"discount\": 0,\r\n//     \"notes\": null,\r\n//     \"items\": [\r\n//         {\r\n//             \"item_type\": \"service\",\r\n//             \"service_id\": 20,\r\n//             \"product_id\": null,\r\n//             \"quantity\": 1\r\n//         }\r\n//     ]\r\n// }",
+                  "raw": " //Note:Invoice Type => 1.consultation كشف / استشارة (يتطلب دكتور)\r\n //                     2.session جلسة طبية (يتطلب دكتور وممكن ممرضة)\r\n //                     3.direct_sale بيع مباشر أدوية/مستلزمات (لا يتطلب دكتور)  \r\n\r\n //1. الحالة العامة: كشف طبي أو جلسة (مع الكتشف الذكي للحجز أو الكشف الفوري Walk-in)\r\n{\r\n    \"patient_id\": 1,\r\n    \"appointment_id\": null,\r\n    \"type\": \"session\",\r\n    \"payment_method\": \"cash\",\r\n    \"doctor_id\": 2,\r\n    \"nurse_id\": null,\r\n    \"discount\": 0,\r\n    \"paid_amount\": 300,\r\n    \"notes\": \"جلسة ليزر مع دفع جزء من المبلغ\",\r\n    \"items\": [\r\n        {\r\n            \"item_type\": \"service\",\r\n            \"service_id\": 25,\r\n            \"service_items_ids\": [1,2]\r\n        }\r\n        //,\r\n        // {\r\n        //     \"item_type\": \"product\",\r\n        //     \"product_id\": 1,\r\n        //     \"quantity\": 3\r\n        // }\r\n    ]\r\n}\r\n\r\n//2. حالة مبيعات صيدلية مباشرة (direct_sale)\r\n// {\r\n//     \"patient_id\": 1,\r\n//     \"appointment_id\": null,\r\n//     \"type\": \"direct_sale\",\r\n//     \"payment_method\": \"cash\",\r\n//     \"doctor_id\": null,\r\n//     \"nurse_id\": null,\r\n//     \"discount\": 0,\r\n//     \"notes\": \"شراء أدوية مباشرة من الصيدلية بدون كشف\",\r\n//     \"items\": [\r\n//         {\r\n//             \"item_type\": \"product\",\r\n//             \"service_id\": null,\r\n//             \"product_id\": 1,\r\n//             \"quantity\": 3\r\n//         }\r\n//     ]\r\n// }\r\n//3. حالة إرسال appointment_id صراحة (حجز مسبق معروف رقمه)\r\n// {\r\n//     \"patient_id\": 1,\r\n//     \"appointment_id\": 4,\r\n//     \"type\": \"session\",\r\n//     \"payment_method\": \"cash\",\r\n//     \"doctor_id\": 2,\r\n//     \"nurse_id\": null,\r\n//     \"discount\": 0,\r\n//     \"notes\": null,\r\n//     \"items\": [\r\n//         {\r\n//             \"item_type\": \"service\",\r\n//             \"service_id\": 20,\r\n//             \"product_id\": null,\r\n//             \"quantity\": 1\r\n//         }\r\n//     ]\r\n// }",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -1887,6 +1955,44 @@
                   ],
                   "path": [
                     "invoices"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Pay Invoice",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"amount\": 300,\r\n    \"payment_method\": \"cash\",\r\n    \"notes\": \"سداد دفعة نقدية من المبلغ المتبقي\"\r\n}\r\n",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/invoices/1/pay",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "invoices",
+                    "1",
+                    "pay"
                   ]
                 }
               },
@@ -2049,7 +2155,7 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{base_url}}/follow-ups?status=pending",
+                  "raw": "{{base_url}}/follow-ups",
                   "host": [
                     "{{base_url}}"
                   ],
@@ -2059,7 +2165,8 @@
                   "query": [
                     {
                       "key": "status",
-                      "value": "pending"
+                      "value": "pending",
+                      "disabled": true
                     }
                   ]
                 }
@@ -2223,234 +2330,976 @@
       "name": "5. HR & Expenses Module (إدارة النفقات والمصروفات والأرباح والخسائر)",
       "item": [
         {
-          "name": "Get Expenses",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/expenses?category=utility",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "expenses"
-              ],
-              "query": [
-                {
-                  "key": "category",
-                  "value": "utility"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Expense Summary (P&L)",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/expenses/summary?date_from=2026-09-01&date_to=2026-09-30",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "expenses",
-                "summary"
-              ],
-              "query": [
-                {
-                  "key": "date_from",
-                  "value": "2026-09-01"
+          "name": "Expenses",
+          "item": [
+            {
+              "name": "Get Expenses",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
                 },
-                {
-                  "key": "date_to",
-                  "value": "2026-09-30"
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/expenses?category=utility",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "expenses"
+                  ],
+                  "query": [
+                    {
+                      "key": "category",
+                      "value": "utility"
+                    }
+                  ]
                 }
-              ]
+              },
+              "response": []
+            },
+            {
+              "name": "Get Expense Summary (P&L)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/expenses/summary?date_from=2026-09-01&date_to=2026-09-30",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "expenses",
+                    "summary"
+                  ],
+                  "query": [
+                    {
+                      "key": "date_from",
+                      "value": "2026-09-01"
+                    },
+                    {
+                      "key": "date_to",
+                      "value": "2026-09-30"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Expense (Electricity / Internet / Buffet)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"title\": \"فاتورة كهرباء شهر 10\",\n    \"category\": \"utility\",\n    \"amount\": 1250.50,\n    \"payment_method\": \"cash\",\n    \"expense_date\": \"2026-09-14\",\n    \"notes\": \"سداد فاتورة الكهرباء لفرع العيادة الرئيسي\"\n}\n\n// Note: category options => utility (كهرباء/نت/مياه), buffet (بوفيه/ضيافة), maintenance (صيانة), rent (إيجار), salaries (مرتبات/نثريات), other (أخرى)",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/expenses",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "expenses"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Show Expense",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/expenses/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "expenses",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Expense",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"amount\": 1300.00,\n    \"notes\": \"تحديث قيمة الفاتورة شاملة غرامة التأخير\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/expenses/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "expenses",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Expense",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/expenses/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "expenses",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
             }
-          },
-          "response": []
+          ]
         },
         {
-          "name": "Create Expense (Electricity / Internet / Buffet)",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
+          "name": "Staff Contracts & Commissions (عقود الموظفين والعمولات)",
+          "item": [
+            {
+              "name": "Get Contracts",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/contracts?is_active=true",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "contracts"
+                  ],
+                  "query": [
+                    {
+                      "key": "user_id",
+                      "value": "1",
+                      "disabled": true
+                    },
+                    {
+                      "key": "contract_type",
+                      "value": "doctor",
+                      "disabled": true
+                    },
+                    {
+                      "key": "is_active",
+                      "value": "true"
+                    },
+                    {
+                      "key": "search",
+                      "value": "أحمد",
+                      "disabled": true
+                    }
+                  ]
                 }
-              ]
+              },
+              "response": []
             },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"title\": \"فاتورة كهرباء شهر 9\",\n    \"category\": \"utility\",\n    \"amount\": 1250.50,\n    \"payment_method\": \"cash\",\n    \"expense_date\": \"2026-09-14\",\n    \"notes\": \"سداد فاتورة الكهرباء لفرع العيادة الرئيسي\"\n}\n\n// Note: category options => utility (كهرباء/نت/مياه), buffet (بوفيه/ضيافة), maintenance (صيانة), rent (إيجار), salaries (مرتبات/نثريات), other (أخرى)",
-              "options": {
-                "raw": {
-                  "language": "json"
+            {
+              "name": "Get Active Contract By User",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/contracts/user/2",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "contracts",
+                    "user",
+                    "2"
+                  ]
                 }
-              }
+              },
+              "response": []
             },
-            "url": {
-              "raw": "{{base_url}}/expenses",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "expenses"
-              ]
+            {
+              "name": "Create Contract - Receptionist (نسبة من مبيعات الأقسام)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"user_id\": 4,\n    \"title\": \"عقد موظف استقبال وعلاقات مرضى\",\n    \"contract_type\": \"receptionist\",\n    \"is_active\": true,\n    \"hourly_rate\": 0,\n    \"overtime_hour_rate\": 25,\n    \"late_deduction_rate_per_hour\": 30,\n    \"applies_department_commission\": true,\n    \"department_commissions\": [\n        {\n            \"department_id\": 1,\n            \"percentage\": 0.05\n        },\n        {\n            \"department_id\": 2,\n            \"percentage\": 0.05\n        }\n    ],\n    \"notes\": \"راتب أساسي من جدول المستخدمين + نسبة 0.05% من مبيعات أقسام العلاج الطبيعي والتغذية والجلدية\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/contracts",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "contracts"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Contract - Nurse (جلسات الأجهزة + مبيعات أدوية + بدل إجازة)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"user_id\": 5,\n    \"title\": \"عقد مساعدة تمريض وعناية بالمرضى\",\n    \"contract_type\": \"nurse\",\n    \"is_active\": true,\n    \"device_session_commission\": 5.00,\n    \"medication_sales_percentage\": 2.50,\n    \"holiday_day_rate\": 50.00,\n    \"overtime_hour_rate\": 20,\n    \"late_deduction_rate_per_hour\": 25,\n    \"notes\": \"راتب أساسي 1700 ج من جدول المستخدمين + 5 ج لكل جلسة جهاز + 2.5% من مبيعات الأدوية + 50 ج بدل يوم الإجازة\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/contracts",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "contracts"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Contract - Physical Therapy (عمولات ثابتة بالجنيه على كل خدمة)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"user_id\": 6,\n    \"title\": \"عقد أخصائي علاج طبيعي وتأهيل\",\n    \"contract_type\": \"doctor\",\n    \"is_active\": true,\n    \"service_commissions\": [\n        {\n            \"service_id\": 1,\n            \"commission_type\": \"fixed\",\n            \"commission_value\": 50.00\n        },\n        {\n            \"service_id\": 2,\n            \"commission_type\": \"fixed\",\n            \"commission_value\": 40.00\n        },\n        {\n            \"service_id\": 3,\n            \"commission_type\": \"fixed\",\n            \"commission_value\": 60.00\n        },\n        {\n            \"service_id\": 4,\n            \"commission_type\": \"fixed\",\n            \"commission_value\": 137.50\n        },\n        {\n            \"service_id\": 5,\n            \"commission_type\": \"fixed\",\n            \"commission_value\": 178.50\n        },\n        {\n            \"service_id\": 6,\n            \"commission_type\": \"fixed\",\n            \"commission_value\": 125.00\n        },\n        {\n            \"service_id\": 7,\n            \"commission_type\": \"fixed\",\n            \"commission_value\": 5.00\n        },\n        {\n            \"service_id\": 8,\n            \"commission_type\": \"fixed\",\n            \"commission_value\": 5.00\n        },\n        {\n            \"service_id\": 9,\n            \"commission_type\": \"fixed\",\n            \"commission_value\": 125.00\n        }\n    ],\n    \"notes\": \"عمولات نقدية ثابتة محددة لكل خدمة بغض النظر عن تغير سعر بيع الخدمة للمرضى\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/contracts",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "contracts"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Contract - Nutrition (نسبة مئوية عامة من جميع الخدمات)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"user_id\": 7,\n    \"title\": \"عقد أخصائي تغذية علاجية\",\n    \"contract_type\": \"doctor\",\n    \"is_active\": true,\n    \"default_service_commission_type\": \"percentage\",\n    \"default_service_commission_value\": 20.00,\n    \"notes\": \"نسبة ثابتة 20% على إجمالي كافة الكشوفات والخدمات المنفذة بواسطة الطبيب\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/contracts",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "contracts"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Contract - Dermatology & Laser (تارجت وتصعيد تلقائي للشرائح)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"user_id\": 8,\n    \"title\": \"عقد أخصائي جلدية وتجميل وليزر\",\n    \"contract_type\": \"doctor\",\n    \"is_active\": true,\n    \"hourly_rate\": 40.00,\n    \"laser_service_commission_percentage\": 10.00,\n    \"other_service_commission_percentage\": 15.00,\n    \"has_target\": true,\n    \"target_amount\": 7500.00,\n    \"target_type\": \"doctor_income\",\n    \"target_achieved_hourly_rate\": 100.00,\n    \"target_achieved_laser_percentage\": 15.00,\n    \"target_achieved_other_percentage\": 20.00,\n    \"target_bonus\": 500.00,\n    \"notes\": \"40 ج/ساعة + 10% ليزر + 15% خدمات. عند تحقيق تارجت 7500 ج يرتفع لساعة 100 ج و15% ليزر و20% خدمات وبونص 500 ج مع تفعيل achieved_target=true\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/contracts",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "contracts"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Show Contract",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/contracts/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "contracts",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Contract",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"hourly_rate\": 50.00,\n    \"laser_service_commission_percentage\": 12.00,\n    \"target_amount\": 8000.00,\n    \"notes\": \"تحديث شروط العقد وسعر الساعة\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/contracts/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "contracts",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Contract",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/contracts/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "contracts",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
             }
-          },
-          "response": []
+          ]
         },
         {
-          "name": "Show Expense",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
+          "name": "Payroll System (مسيرات الرواتب واحتساب المستحقات)",
+          "item": [
+            {
+              "name": "Get Payrolls",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/payrolls?month=2026-09",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "payrolls"
+                  ],
+                  "query": [
+                    {
+                      "key": "month",
+                      "value": "2026-09"
+                    },
+                    {
+                      "key": "user_id",
+                      "value": "5",
+                      "disabled": true
+                    },
+                    {
+                      "key": "status",
+                      "value": "draft",
+                      "disabled": true
+                    },
+                    {
+                      "key": "target_achieved",
+                      "value": "true",
+                      "disabled": true
+                    },
+                    {
+                      "key": "search",
+                      "value": "هاجر",
+                      "disabled": true
+                    }
+                  ]
                 }
-              ]
+              },
+              "response": []
             },
-            "method": "GET",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/expenses/1",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "expenses",
-                "1"
-              ]
+            {
+              "name": "Generate Single Payroll (احتساب وتوليد راتب موظف)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"user_id\": 5,\n    \"month\": \"2026-09\",\n    \"holiday_days\": 2,\n    \"other_allowances\": 150,\n    \"deductions\": 50,\n    \"notes\": \"احتساب شهر 9 مع إضافة بدل تصوير وخصم سلفة\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/payrolls/generate",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "payrolls",
+                    "generate"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Generate All Payrolls (توليد مسيرات الرواتب لكافة الموظفين دفعة واحدة)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"month\": \"2026-09\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/payrolls/generate-all",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "payrolls",
+                    "generate-all"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Show Payroll (عرض المسير وتفنيد كافة البنود المحتسبة)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/payrolls/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "payrolls",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Payroll (تعديل البدلات أو الخصومات اليدوية)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"other_allowances\": 200.00,\n    \"deductions\": 100.00,\n    \"notes\": \"تعديل المكافأة والخصم اليدوي\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/payrolls/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "payrolls",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Approve Payroll (اعتماد المسير من الإدارة)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/payrolls/1/approve",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "payrolls",
+                    "1",
+                    "approve"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Pay Payroll (تأكيد صرف الراتب)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"payment_method\": \"cash\",\n    \"notes\": \"تم تسليم الراتب نقداً للموظف\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/payrolls/1/pay",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "payrolls",
+                    "1",
+                    "pay"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Payroll",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/payrolls/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "payrolls",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
             }
-          },
-          "response": []
-        },
-        {
-          "name": "Update Expense",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"amount\": 1300.00,\n    \"notes\": \"تحديث قيمة الفاتورة شاملة غرامة التأخير\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{base_url}}/expenses/1",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "expenses",
-                "1"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Delete Expense",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/expenses/1",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "expenses",
-                "1"
-              ]
-            }
-          },
-          "response": []
+          ]
         }
       ]
     }

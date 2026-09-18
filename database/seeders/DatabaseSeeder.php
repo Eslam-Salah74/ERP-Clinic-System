@@ -4,9 +4,10 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Modules\Auth\Database\Seeders\AuthDatabaseSeeder;
-use Modules\Setup\Database\Seeders\SetupDatabaseSeeder;
+use Modules\HR\Database\Seeders\HRDatabaseSeeder;
 use Modules\Inventory\Database\Seeders\InventoryDatabaseSeeder;
 use Modules\Reception\Database\Seeders\ReceptionDatabaseSeeder;
+use Modules\Setup\Database\Seeders\SetupDatabaseSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -32,8 +33,8 @@ class DatabaseSeeder extends Seeder
         // 4. Reception: صلاحيات وبيانات الاستقبال (مرضى، مواعيد، شيفتات، فواتير)
         $this->call(ReceptionDatabaseSeeder::class);
 
-        // ➕ لو أضفت موديول جديد (مثلاً HR)، ضيفه هنا:
-        // $this->call(\Modules\HR\Database\Seeders\HRDatabaseSeeder::class);
+        // 5. HR: صلاحيات النفقات والعقود والرواتب
+        $this->call(HRDatabaseSeeder::class);
     }
 }
 

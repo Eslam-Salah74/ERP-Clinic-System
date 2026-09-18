@@ -49,6 +49,21 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasOne(Shift::class, 'user_id')->where('status', 'open');
     }
 
+    public function contracts()
+    {
+        return $this->hasMany(\Modules\HR\Models\StaffContract::class, 'user_id');
+    }
+
+    public function activeContract()
+    {
+        return $this->hasOne(\Modules\HR\Models\StaffContract::class, 'user_id')->where('is_active', true)->latestOfMany();
+    }
+
+    public function payrolls()
+    {
+        return $this->hasMany(\Modules\HR\Models\Payroll::class, 'user_id');
+    }
+
     // --- 2. دوال JWT المطلوبة لتسجيل الدخول ---
     public function getJWTIdentifier()
     {

@@ -15,5 +15,7 @@ class HRDatabaseSeeder extends Seeder
     {
         $this->call(ExpensePermissionDatabaseSeeder::class);
         $this->call(ExpenseDatabaseSeeder::class);
+        $this->call(\Modules\HR\Database\Seeders\Contract\ContractPermissionDatabaseSeeder::class);
+        $this->call(\Modules\HR\Database\Seeders\Payroll\PayrollPermissionDatabaseSeeder::class);
     }
 }
