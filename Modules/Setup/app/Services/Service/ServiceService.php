@@ -19,10 +19,10 @@ class ServiceService
             ->reorder()
             ->orderBy('id', 'desc');
 
-        // جلب كل الخدمات (مثلاً للقوائم المنسدلة Dropdown) أو الترقيم الافتراضي
-        $data = ($request->boolean('all') || $request->get('paginate') === 'false')
+        // جلب كل الخدمات بدون باجينيشن إذا تم تمرير per_page = -1 أو all=true أو paginate=false
+        $data = ($request->boolean('all') || $request->get('paginate') === 'false' || (string) $perPage === '-1')
             ? $query->get()
-            : $query->paginate($perPage);
+            : $query->paginate((int) $perPage);
 
         return API::newInstance()
             ->isOk('Data retrieved successfully')

@@ -11,8 +11,13 @@ class ItemService
 {
     public function index($request, ItemFilter $filter)
     {
-        // إضافة reorder() لضمان عمل latest() بشكل سليم وعرض الأحدث أولاً
-        $data = Item::filter($filter)->reorder()->latest()->paginate(10);
+        $perPage = $request->get('per_page', 10);
+        $query = Item::filter($filter)->reorder()->latest();
+
+        $data = ($request->boolean('all') || $request->get('paginate') === 'false' || (string) $perPage === '-1')
+            ? $query->get()
+            : $query->paginate((int) $perPage);
+
         return API::newInstance()->isOk('Data retrieved successfully')->setData(ItemResource::collection($data))->build();
     }
 

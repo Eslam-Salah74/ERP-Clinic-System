@@ -31,7 +31,9 @@ class AppointmentService
             $query->latest('appointment_date');
         }
 
-        $data = $query->paginate($perPage);
+        $data = ($request->boolean('all') || $request->get('paginate') === 'false' || (string) $perPage === '-1')
+            ? $query->get()
+            : $query->paginate((int) $perPage);
 
         return API::newInstance()->isOk('Data retrieved successfully')->setData(AppointmentResource::collection($data))->build();
     }

@@ -11,7 +11,13 @@ class SupplierService
 {
     public function index($request, SupplierFilter $filter)
     {
-        $data = Supplier::filter($filter)->latest()->paginate(10);
+        $perPage = $request->get('per_page', 10);
+        $query = Supplier::filter($filter)->latest();
+
+        $data = ($request->boolean('all') || $request->get('paginate') === 'false' || (string) $perPage === '-1')
+            ? $query->get()
+            : $query->paginate((int) $perPage);
+
         return API::newInstance()->isOk('Data retrieved successfully')->setData(SupplierResource::collection($data))->build();
     }
 

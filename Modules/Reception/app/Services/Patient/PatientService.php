@@ -21,11 +21,14 @@ class PatientService
             $withRelations['followUps'] = fn($q) => $q->with(['doctor', 'appointment', 'shift'])->latest('follow_up_date');
         }
 
-        $data = Patient::with($withRelations)
+        $query = Patient::with($withRelations)
             ->withCount(['appointments', 'invoices', 'followUps'])
             ->filter($filter)
-            ->latest()
-            ->paginate($perPage);
+            ->latest();
+
+        $data = ($request->boolean('all') || $request->get('paginate') === 'false' || (string) $perPage === '-1')
+            ? $query->get()
+            : $query->paginate((int) $perPage);
 
         return API::newInstance()->isOk('Data retrieved successfully')->setData(PatientResource::collection($data))->build();
     }

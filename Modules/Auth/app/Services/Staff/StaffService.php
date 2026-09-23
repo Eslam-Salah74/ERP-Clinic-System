@@ -13,7 +13,13 @@ class StaffService
 {
     public function index($request, StaffFilter $filter)
     {
-        $data = User::filter($filter)->with(['role.permissions', 'permissions'])->latest()->paginate(10);
+        $perPage = $request->get('per_page', 10);
+        $query = User::filter($filter)->with(['role.permissions', 'permissions'])->latest();
+
+        $data = ($request->boolean('all') || $request->get('paginate') === 'false' || (string) $perPage === '-1')
+            ? $query->get()
+            : $query->paginate((int) $perPage);
+
         return API::newInstance()->isOk('Data retrieved successfully')->setData(StaffResource::collection($data))->build();
     }
 
