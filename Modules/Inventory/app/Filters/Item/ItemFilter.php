@@ -9,7 +9,8 @@ class ItemFilter extends Filters
     protected $var_filters = [
         'name',
         'is_active',
-        'search', // أضفنا متغير البحث هنا
+        'search',
+        'type'
     ];
 
     /**
@@ -20,5 +21,11 @@ class ItemFilter extends Filters
         return $this->builder->where(function ($query) use ($value) {
             $query->where('name', 'like', "%{$value}%");
         });
+    }
+
+
+    protected function type($value)
+    {
+        return $this->builder->where('type', $value);
     }
 }
