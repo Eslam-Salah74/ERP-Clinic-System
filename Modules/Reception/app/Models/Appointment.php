@@ -8,14 +8,32 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Inventory\Models\Item;
 use Modules\Reception\Enums\AppointmentStatusEnum;
+use Modules\Reception\Enums\FollowUpStatusEnum;
 use Modules\Reception\Enums\VisitTypeEnum;
 use Modules\Reception\Filters\Appointment\AppointmentFilter;
+use Modules\Reception\Models\FollowUp;
 use Modules\Reception\Models\Shift;
 use Modules\Setup\Models\Service;
 
 class Appointment extends Model
 {
     use HasFactory, SoftDeletes;
+
+    protected static function booted(): void
+    {
+        static::created(function ($appointment) {
+            FollowUp::create([
+                'patient_id'     => $appointment->patient_id,
+                'doctor_id'      => $appointment->doctor_id,
+                'appointment_id' => $appointment->id,
+                'shift_id'       => $appointment->shift_id,
+                'follow_up_date' => $appointment->appointment_date,
+                'status'         => FollowUpStatusEnum::PENDING->value,
+                'notes'          => 'متابعة تلقائية للحجز رقم #' . $appointment->id,
+                'created_by'     => $appointment->created_by,
+            ]);
+        });
+    }
 
     protected $table = 'appointments';
     protected $guarded = ['id'];
@@ -69,6 +87,11 @@ class Appointment extends Model
     public function shift()
     {
         return $this->belongsTo(Shift::class, 'shift_id');
+    }
+
+    public function followUps()
+    {
+        return $this->hasMany(FollowUp::class, 'appointment_id');
     }
 
     public function getServiceItemsAttribute()

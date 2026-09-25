@@ -28,10 +28,28 @@ class SettingDatabaseSeeder extends Seeder
                 'display_name' => 'نسبة خصم الموظفين من الخدمات (%)',
                 'type' => 'number'
             ],
-            ['key' => 'enable_gps_attendance', 'value' => 'true'], // تفعيل أو إيقاف نظام البصمة الجغرافية (True/False)
-            ['key' => 'clinic_latitude', 'value' => '30.044420'],   // خط عرض موقع العيادة الجغرافي
-            ['key' => 'clinic_longitude', 'value' => '31.235712'],  // خط طول موقع العيادة الجغرافي
-            ['key' => 'clinic_radius_meters', 'value' => '50'],
+            ['key' => 'enable_gps_attendance', 'value' => 'true', 'display_name' => 'تفعيل البصمة الجغرافية', 'type' => 'boolean'], // تفعيل أو إيقاف نظام البصمة الجغرافية (True/False)
+            ['key' => 'clinic_latitude', 'value' => '30.044420', 'display_name' => 'خط عرض العيادة', 'type' => 'text'],   // خط عرض موقع العيادة الجغرافي
+            ['key' => 'clinic_longitude', 'value' => '31.235712', 'display_name' => 'خط طول العيادة', 'type' => 'text'],  // خط طول موقع العيادة الجغرافي
+            ['key' => 'clinic_radius_meters', 'value' => '50', 'display_name' => 'نطاق الحضور الجغرافي (بالمتر)', 'type' => 'number'],
+            [
+                'key' => 'follow_up_notify_today',
+                'value' => 'true',
+                'display_name' => 'تفعيل إشعارات متابعات اليوم',
+                'type' => 'boolean',
+            ],
+            [
+                'key' => 'follow_up_reminder_days_before',
+                'value' => '1',
+                'display_name' => 'تنبيه المتابعات قبل الموعد بـ (أيام)',
+                'type' => 'number',
+            ],
+            [
+                'key' => 'item_low_stock_threshold',
+                'value' => '5',
+                'display_name' => 'حد تنبيه انخفاض المخزون للأصناف',
+                'type' => 'number',
+            ],
         ];
 
         foreach ($settings as $setting) {

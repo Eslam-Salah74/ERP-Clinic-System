@@ -17,6 +17,19 @@ class Item extends Model
     protected $guarded = ['id'];
     protected $fillable = ['name', 'selling_price', 'unit', 'stock_unit', 'conversion_factor', 'type', 'current_stock', 'is_active'];
 
+    protected static function booted(): void
+    {
+        static::saved(function ($item) {
+            if ($item->is_active) {
+                try {
+                    app(\Modules\Setup\Services\Notification\NotificationService::class)->notifyLowStockForItem($item);
+                } catch (\Throwable $e) {
+                    // Silently fail during migrations/seeding if dependencies are not ready
+                }
+            }
+        });
+    }
+
     protected $casts = [
         'type' => ItemTypeEnum::class,
         'unit' => ItemUnitEnum::class,

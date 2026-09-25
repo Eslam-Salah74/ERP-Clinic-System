@@ -21,6 +21,13 @@ class AuthController extends Controller
             return response()->json(['error' => 'رقم الهاتف أو كلمة المرور غير صحيحة'], 401);
         }
 
+        // فحص وتحديث الإشعارات تلقائياً عند تسجيل الدخول بدون كرون جوب
+        try {
+            app(\Modules\Setup\Services\Notification\NotificationService::class)->checkAndSendNotifications();
+        } catch (\Throwable $e) {
+            // Silently ignore
+        }
+
         return $this->respondWithToken($token);
     }
 

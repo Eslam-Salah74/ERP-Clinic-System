@@ -40,6 +40,7 @@ class AppointmentResource extends JsonResource
             'notes' => $this->notes,
             'created_by' => $this->created_by,
             'creator_name' => $this->creator?->name,
+            'follow_ups' => \Modules\Reception\Http\Resources\FollowUp\FollowUpResource::collection($this->whenLoaded('followUps')),
             'created_at' => $this->created_at?->toIso8601String(),
         ];
     }

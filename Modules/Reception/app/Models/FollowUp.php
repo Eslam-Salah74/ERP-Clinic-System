@@ -16,6 +16,19 @@ class FollowUp extends Model
     protected $table = 'follow_ups';
     protected $guarded = ['id'];
 
+    protected static function booted(): void
+    {
+        static::saved(function ($followUp) {
+            try {
+                if ($followUp->status === FollowUpStatusEnum::PENDING || $followUp->status === FollowUpStatusEnum::PENDING->value) {
+                    app(\Modules\Setup\Services\Notification\NotificationService::class)->checkSingleFollowUp($followUp);
+                }
+            } catch (\Throwable $e) {
+                // Silently ignore during migrations/seeding
+            }
+        });
+    }
+
     protected $casts = [
         'follow_up_date' => 'datetime',
         'status' => FollowUpStatusEnum::class,

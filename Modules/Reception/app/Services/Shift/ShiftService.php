@@ -83,6 +83,13 @@ class ShiftService
             'late_minutes' => $lateMinutes,
         ]);
 
+        // فحص وتحديث إشعارات اليوم للمتابعات والمخزون عند فتح الشفت تلقائياً بدون كرون جوب
+        try {
+            app(\Modules\Setup\Services\Notification\NotificationService::class)->checkAndSendNotifications();
+        } catch (\Throwable $e) {
+            // Silently ignore
+        }
+
         return API::newInstance()
             ->isCreated('تم فتح الشفت بنجاح')
             ->setData(new ShiftResource($shift->load('user')))
