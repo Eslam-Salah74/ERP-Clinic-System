@@ -18,6 +18,8 @@ class Payroll extends Model
     protected $casts = [
         'status' => PayrollStatusEnum::class,
         'target_achieved' => 'boolean',
+        'start_date' => 'date',
+        'end_date' => 'date',
         'approved_at' => 'datetime',
         'paid_at' => 'datetime',
         'basic_salary' => 'decimal:2',

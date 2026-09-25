@@ -54,20 +54,46 @@ class PayrollService
     }
 
     /**
-     * توليد مسير الراتب لموظف محدد عن شهر معين
+     * توليد مسير الراتب لموظف محدد عن فترة محددة أو شهر معين
      */
     public function generate(GeneratePayrollRequest $request)
     {
         $validated = $request->validated();
-        $userId = $validated['user_id'];
-        $month = $validated['month'];
+        $userId = (int) $validated['user_id'];
 
-        $existing = Payroll::where('user_id', $userId)->where('month', $month)->first();
-        if ($existing && $existing->status === PayrollStatusEnum::PAID) {
-            return API::newInstance()->isError('مسير الراتب لهذا الموظف عن هذا الشهر تم صرفه بالفعل ولا يمكن إعادة توليده')->build();
+        if (!empty($validated['start_date']) && !empty($validated['end_date'])) {
+            $startDate = Carbon::parse($validated['start_date'])->startOfDay();
+            $endDate = Carbon::parse($validated['end_date'])->endOfDay();
+            $month = $validated['month'] ?? $startDate->format('Y-m');
+        } else {
+            $month = $validated['month'];
+            $startDate = Carbon::createFromFormat('Y-m', $month)->startOfMonth()->startOfDay();
+            $endDate = Carbon::createFromFormat('Y-m', $month)->endOfMonth()->endOfDay();
         }
 
-        $payroll = $this->calculateAndSavePayroll($userId, $month, $validated);
+        $formattedStart = $startDate->format('Y-m-d');
+        $formattedEnd = $endDate->format('Y-m-d');
+
+        // التحقق من عدم وجود مسير راتب تم صرفه بالفعل ومتداخل مع هذه الفترة
+        $overlappingPaid = Payroll::where('user_id', $userId)
+            ->where('status', PayrollStatusEnum::PAID)
+            ->where(function ($query) use ($formattedStart, $formattedEnd) {
+                $query->whereBetween('start_date', [$formattedStart, $formattedEnd])
+                    ->orWhereBetween('end_date', [$formattedStart, $formattedEnd])
+                    ->orWhere(function ($q) use ($formattedStart, $formattedEnd) {
+                        $q->where('start_date', '<=', $formattedStart)
+                          ->where('end_date', '>=', $formattedEnd);
+                    });
+            })
+            ->first();
+
+        if ($overlappingPaid) {
+            $paidStart = $overlappingPaid->start_date ? Carbon::parse($overlappingPaid->start_date)->format('Y-m-d') : $overlappingPaid->month;
+            $paidEnd = $overlappingPaid->end_date ? Carbon::parse($overlappingPaid->end_date)->format('Y-m-d') : $overlappingPaid->month;
+            return API::newInstance()->isError("مسير الراتب لهذا الموظف عن فترة متداخلة (من {$paidStart} إلى {$paidEnd}) تم صرفه بالفعل ولا يمكن إعادة توليده")->build();
+        }
+
+        $payroll = $this->calculateAndSavePayroll($userId, $month, $startDate, $endDate, $validated);
 
         return API::newInstance()
             ->isCreated('تم احتساب مسير الراتب بنجاح')
@@ -76,22 +102,52 @@ class PayrollService
     }
 
     /**
-     * توليد مسيرات الرواتب لكافة الموظفين النشطين عن شهر معين دفعة واحدة
+     * توليد مسيرات الرواتب لكافة الموظفين النشطين عن شهر أو فترة محددة دفعة واحدة
      */
-    public function generateAll($month)
+    public function generateAll($params)
     {
+        if (is_array($params)) {
+            if (!empty($params['start_date']) && !empty($params['end_date'])) {
+                $startDate = Carbon::parse($params['start_date'])->startOfDay();
+                $endDate = Carbon::parse($params['end_date'])->endOfDay();
+                $month = $params['month'] ?? $startDate->format('Y-m');
+            } else {
+                $month = $params['month'];
+                $startDate = Carbon::createFromFormat('Y-m', $month)->startOfMonth()->startOfDay();
+                $endDate = Carbon::createFromFormat('Y-m', $month)->endOfMonth()->endOfDay();
+            }
+        } else {
+            $month = (string) $params;
+            $startDate = Carbon::createFromFormat('Y-m', $month)->startOfMonth()->startOfDay();
+            $endDate = Carbon::createFromFormat('Y-m', $month)->endOfMonth()->endOfDay();
+        }
+
+        $formattedStart = $startDate->format('Y-m-d');
+        $formattedEnd = $endDate->format('Y-m-d');
+
         $users = User::where('is_active', true)->get();
         $generatedCount = 0;
         $errors = [];
 
         foreach ($users as $user) {
             try {
-                $existing = Payroll::where('user_id', $user->id)->where('month', $month)->first();
-                if ($existing && $existing->status === PayrollStatusEnum::PAID) {
+                $overlappingPaid = Payroll::where('user_id', $user->id)
+                    ->where('status', PayrollStatusEnum::PAID)
+                    ->where(function ($query) use ($formattedStart, $formattedEnd) {
+                        $query->whereBetween('start_date', [$formattedStart, $formattedEnd])
+                            ->orWhereBetween('end_date', [$formattedStart, $formattedEnd])
+                            ->orWhere(function ($q) use ($formattedStart, $formattedEnd) {
+                                $q->where('start_date', '<=', $formattedStart)
+                                  ->where('end_date', '>=', $formattedEnd);
+                            });
+                    })
+                    ->first();
+
+                if ($overlappingPaid) {
                     continue;
                 }
 
-                $this->calculateAndSavePayroll($user->id, $month, []);
+                $this->calculateAndSavePayroll($user->id, $month, $startDate, $endDate, []);
                 $generatedCount++;
             } catch (\Exception $e) {
                 $errors[] = "خطأ للموظف {$user->name}: " . $e->getMessage();
@@ -99,9 +155,14 @@ class PayrollService
         }
 
         return API::newInstance()
-            ->isOk("تم توليد {$generatedCount} مسير راتب عن شهر {$month}")
+            ->isOk("تم توليد {$generatedCount} مسير راتب للفترة من {$formattedStart} إلى {$formattedEnd}")
             ->setData([
                 'generated_count' => $generatedCount,
+                'period' => [
+                    'start_date' => $formattedStart,
+                    'end_date' => $formattedEnd,
+                    'month' => $month,
+                ],
                 'errors' => $errors,
             ])
             ->build();
@@ -110,17 +171,32 @@ class PayrollService
     /**
      * المنطق المحاسبي الشامل لاحتساب الراتب والعمولات والخصومات
      */
-    public function calculateAndSavePayroll(int $userId, string $month, array $extra = []): Payroll
+    public function calculateAndSavePayroll(int $userId, string $month, ?Carbon $startDate = null, ?Carbon $endDate = null, array $extra = []): Payroll
     {
-        return DB::transaction(function () use ($userId, $month, $extra) {
+        return DB::transaction(function () use ($userId, $month, $startDate, $endDate, $extra) {
             $user = User::with(['activeContract.serviceCommissions.service'])->findOrFail($userId);
             $contract = $user->activeContract;
 
-            $startDate = Carbon::createFromFormat('Y-m', $month)->startOfMonth();
-            $endDate = Carbon::createFromFormat('Y-m', $month)->endOfMonth();
+            if (!$startDate || !$endDate) {
+                $startDate = Carbon::createFromFormat('Y-m', $month)->startOfMonth()->startOfDay();
+                $endDate = Carbon::createFromFormat('Y-m', $month)->endOfMonth()->endOfDay();
+            }
 
-            // 1. الراتب الأساسي من جدول المستخدمين
-            $basicSalary = (float) ($user->basic_salary ?? 0);
+            $formattedStart = $startDate->format('Y-m-d');
+            $formattedEnd = $endDate->format('Y-m-d');
+
+            // 1. الراتب الأساسي (يؤخذ من جدول المستخدمين مع دعم التوزيع النسبي للأيام)
+            $userBasicSalary = (float) ($user->basic_salary ?? 0);
+            $daysInMonth = $startDate->daysInMonth;
+            $periodDays = $startDate->diffInDays($endDate) + 1;
+
+            if (isset($extra['basic_salary']) && is_numeric($extra['basic_salary'])) {
+                $basicSalary = (float) $extra['basic_salary'];
+            } elseif ($periodDays >= $daysInMonth || $periodDays >= 28) {
+                $basicSalary = $userBasicSalary;
+            } else {
+                $basicSalary = round(($userBasicSalary / $daysInMonth) * $periodDays, 2);
+            }
 
             // 2. إحصائيات الشفتات وساعات العمل والتأخيرات
             $shifts = Shift::where('user_id', $userId)
@@ -134,7 +210,7 @@ class PayrollService
 
             foreach ($shifts as $shift) {
                 if ($shift->start_time && $shift->end_time) {
-                    $diffHours = Carbon::parse($shift->end_time)->diffInMinutes(Carbon::parse($shift->start_time)) / 60;
+                    $diffHours = abs(Carbon::parse($shift->start_time)->diffInMinutes(Carbon::parse($shift->end_time))) / 60;
                     $totalWorkingHours += $diffHours;
                 }
 
@@ -163,9 +239,13 @@ class PayrollService
             $itemsToCreate = [];
 
             if ($basicSalary > 0) {
+                $basicDesc = ($periodDays < 28)
+                    ? "الراتب الأساسي النسبي للفترة ({$periodDays} يوم من أصل {$daysInMonth} يوم)"
+                    : 'الراتب الأساسي الشهري';
+
                 $itemsToCreate[] = [
                     'type' => 'basic_salary',
-                    'description' => 'الراتب الأساسي الشهري',
+                    'description' => $basicDesc,
                     'amount' => $basicSalary,
                     'is_addition' => true,
                 ];
@@ -518,11 +598,13 @@ class PayrollService
                 'user_id' => $userId,
                 'contract_id' => $contract?->id,
                 'month' => $month,
+                'start_date' => $formattedStart,
+                'end_date' => $formattedEnd,
                 'basic_salary' => $basicSalary,
                 'shifts_count' => $shiftsCount,
-                'total_working_hours' => $totalWorkingHours,
+                'total_working_hours' => round($totalWorkingHours, 2),
                 'hourly_pay' => $hourlyPay,
-                'overtime_hours' => $overtimeHours,
+                'overtime_hours' => round($overtimeHours, 2),
                 'overtime_amount' => $overtimeAmount,
                 'late_minutes' => $lateMinutes,
                 'late_deduction_amount' => $lateDeductionAmount,
@@ -545,10 +627,29 @@ class PayrollService
                 'notes' => $notes,
             ];
 
-            $payroll = Payroll::updateOrCreate(
-                ['user_id' => $userId, 'month' => $month],
-                $payrollData
-            );
+            // البحث عن مسير موجود لنفس الفترة (مع دعم السجلات المحذوفة withTrashed لتفادي أي خطأ Duplicate entry)
+            $existing = Payroll::withTrashed()
+                ->where('user_id', $userId)
+                ->where(function ($query) use ($formattedStart, $formattedEnd, $month) {
+                    $query->where(function ($q) use ($formattedStart, $formattedEnd) {
+                        $q->where('start_date', $formattedStart)
+                          ->where('end_date', $formattedEnd);
+                    })->orWhere(function ($q) use ($month) {
+                        $q->where('month', $month)
+                          ->whereNull('start_date');
+                    });
+                })
+                ->first();
+
+            if ($existing) {
+                if ($existing->trashed()) {
+                    $existing->restore();
+                }
+                $existing->update($payrollData);
+                $payroll = $existing;
+            } else {
+                $payroll = Payroll::create($payrollData);
+            }
 
             // حذف البنود السابقة وإعادة تسجيل البنود التفصيلية
             $payroll->items()->delete();

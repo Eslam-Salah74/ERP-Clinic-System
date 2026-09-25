@@ -25,6 +25,11 @@ class PayrollResource extends JsonResource
             }),
             'contract_id' => $this->contract_id,
             'month' => $this->month,
+            'start_date' => $this->start_date ? \Carbon\Carbon::parse($this->start_date)->format('Y-m-d') : null,
+            'end_date' => $this->end_date ? \Carbon\Carbon::parse($this->end_date)->format('Y-m-d') : null,
+            'period_days' => ($this->start_date && $this->end_date)
+                ? (int) \Carbon\Carbon::parse($this->start_date)->diffInDays(\Carbon\Carbon::parse($this->end_date)) + 1
+                : null,
 
             // الراتب الأساسي وساعات العمل
             'basic_salary' => (float) $this->basic_salary,

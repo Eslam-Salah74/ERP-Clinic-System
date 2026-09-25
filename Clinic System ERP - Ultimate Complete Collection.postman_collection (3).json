@@ -1,11 +1,11 @@
 {
   "info": {
-    "_postman_id": "ca6dab75-f39f-46ee-a56d-f6cf5ad4ee1b",
+    "_postman_id": "fe290c06-d291-4053-b2ce-77c4f404c647",
     "name": "Clinic System ERP - Ultimate Complete Collection",
     "description": "الملف الشامل والنهائي لكل مسارات وعمليات السيستم الطبي (Auth, Setup, Inventory, Reception, Shifts, Invoices, Patients, Appointments)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "27537915",
-    "_collection_link": "https://go.postman.co/collection/27537915-ca6dab75-f39f-46ee-a56d-f6cf5ad4ee1b?source=collection_link"
+    "_collection_link": "https://go.postman.co/collection/27537915-fe290c06-d291-4053-b2ce-77c4f404c647?source=collection_link"
   },
   "item": [
     {
@@ -400,7 +400,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"name\": \"محمد أحمد\",\n    \"phone\": \"01000000000\",\n    \"email\": \"mohamed@clinic.com\",\n    \"password\": \"12345678\",\n    \"role_id\": 2,\n    \"type\":\"doctor\", //Note:admin, receptionist ,doctor,nurse,sterilization,accountant\n    \"basic_salary\":7500,\n    \"is_active\":true,\n    \"department_id\":2,\n    \"achieved_target\":0\n\n}",
+              "raw": "{\n    \"name\":\t\"ام هاجر\",\n    \"phone\": \"01000030203000\",\n    \"email\": \"omhamger@clinic.com\",\n    \"password\": \"12345678\",\n    \"role_id\": 2,\n    \"type\":\"nurse\", //Note:admin, receptionist ,doctor,nurse,sterilization,accountant\n    \"basic_salary\":1700,\n    \"is_active\":true,\n    \"department_id\":5,\n    \"achieved_target\":0\n\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -586,7 +586,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\"name\": \"قسم الباطنة\"}",
+                  "raw": "{\"name\": \"قسم التمريض\",\"is_active\":1}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -1913,12 +1913,49 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/invoices",
+                  "raw": "{{base_url}}/invoices?search=INV-2026-0001",
                   "host": [
                     "{{base_url}}"
                   ],
                   "path": [
                     "invoices"
+                  ],
+                  "query": [
+                    {
+                      "key": "search",
+                      "value": "INV-2026-0001",
+                      "description": "بحث شامل برقم الفاتورة أو اسم المريض أو رقم هاتفه"
+                    },
+                    {
+                      "key": "invoice_number",
+                      "value": "INV-2026-0001",
+                      "disabled": true
+                    },
+                    {
+                      "key": "status",
+                      "value": "paid",
+                      "disabled": true
+                    },
+                    {
+                      "key": "type",
+                      "value": "session",
+                      "disabled": true
+                    },
+                    {
+                      "key": "doctor_id",
+                      "value": "4",
+                      "disabled": true
+                    },
+                    {
+                      "key": "patient_id",
+                      "value": "1",
+                      "disabled": true
+                    },
+                    {
+                      "key": "per_page",
+                      "value": "10",
+                      "disabled": true
+                    }
                   ]
                 }
               },
@@ -1941,7 +1978,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": " //Note:Invoice Type => 1.consultation كشف / استشارة (يتطلب دكتور)\r\n //                     2.session جلسة طبية (يتطلب دكتور وممكن ممرضة)\r\n //                     3.direct_sale بيع مباشر أدوية/مستلزمات (لا يتطلب دكتور)  \r\n\r\n //1. الحالة العامة: كشف طبي أو جلسة (مع الكتشف الذكي للحجز أو الكشف الفوري Walk-in)\r\n{\r\n    \"patient_id\": 1,\r\n    \"appointment_id\": null,\r\n    \"type\": \"session\",\r\n    \"payment_method\": \"cash\",\r\n    \"doctor_id\": 2,\r\n    \"nurse_id\": null,\r\n    \"discount\": 0,\r\n    \"paid_amount\": 300,\r\n    \"notes\": \"جلسة ليزر مع دفع جزء من المبلغ\",\r\n    \"items\": [\r\n        {\r\n            \"item_type\": \"service\",\r\n            \"service_id\": 25,\r\n            \"service_items_ids\": [1,2]\r\n        }\r\n        //,\r\n        // {\r\n        //     \"item_type\": \"product\",\r\n        //     \"product_id\": 1,\r\n        //     \"quantity\": 3\r\n        // }\r\n    ]\r\n}\r\n\r\n//2. حالة مبيعات صيدلية مباشرة (direct_sale)\r\n// {\r\n//     \"patient_id\": 1,\r\n//     \"appointment_id\": null,\r\n//     \"type\": \"direct_sale\",\r\n//     \"payment_method\": \"cash\",\r\n//     \"doctor_id\": null,\r\n//     \"nurse_id\": null,\r\n//     \"discount\": 0,\r\n//     \"notes\": \"شراء أدوية مباشرة من الصيدلية بدون كشف\",\r\n//     \"items\": [\r\n//         {\r\n//             \"item_type\": \"product\",\r\n//             \"service_id\": null,\r\n//             \"product_id\": 1,\r\n//             \"quantity\": 3\r\n//         }\r\n//     ]\r\n// }\r\n//3. حالة إرسال appointment_id صراحة (حجز مسبق معروف رقمه)\r\n// {\r\n//     \"patient_id\": 1,\r\n//     \"appointment_id\": 4,\r\n//     \"type\": \"session\",\r\n//     \"payment_method\": \"cash\",\r\n//     \"doctor_id\": 2,\r\n//     \"nurse_id\": null,\r\n//     \"discount\": 0,\r\n//     \"notes\": null,\r\n//     \"items\": [\r\n//         {\r\n//             \"item_type\": \"service\",\r\n//             \"service_id\": 20,\r\n//             \"product_id\": null,\r\n//             \"quantity\": 1\r\n//         }\r\n//     ]\r\n// }",
+                  "raw": " //Note:Invoice Type => 1.consultation كشف / استشارة (يتطلب دكتور)\r\n //                     2.session جلسة طبية (يتطلب دكتور وممكن ممرضة)\r\n //                     3.direct_sale بيع مباشر أدوية/مستلزمات (لا يتطلب دكتور)  \r\n\r\n //1. الحالة العامة: كشف طبي أو جلسة (مع الكتشف الذكي للحجز أو الكشف الفوري Walk-in)\r\n{\r\n    \"patient_id\": 1,\r\n    \"appointment_id\": null,\r\n    \"type\": \"session\",\r\n    \"payment_method\": \"cash\",\r\n    \"doctor_id\": 4,\r\n    \"nurse_id\": 5,\r\n    \"discount\": 0,\r\n    \"paid_amount\": 300,\r\n    \"notes\": \"جلسة علاج طبيعي سنجل +دبل\",\r\n    \"items\": [\r\n        {\r\n            \"item_type\": \"service\",\r\n            \"service_id\": 29,\r\n            \"service_items_ids\": [1,1] // لو الخدمة كان ليها\r\n        }\r\n        // ,\r\n        // {\r\n        //     \"item_type\": \"service\",\r\n        //     \"service_id\": 14\r\n        //     //\"service_items_ids\": [1,2] لو الخدمة كان ليها\r\n        // }\r\n        ,\r\n        {\r\n            \"item_type\": \"product\",\r\n            \"product_id\": 51,\r\n            \"quantity\": 2\r\n        }\r\n    ]\r\n}\r\n\r\n//2. حالة مبيعات صيدلية مباشرة (direct_sale)\r\n// {\r\n//     \"patient_id\": 1,\r\n//     \"appointment_id\": null,\r\n//     \"type\": \"direct_sale\",\r\n//     \"payment_method\": \"cash\",\r\n//     \"doctor_id\": null,\r\n//     \"nurse_id\": null,\r\n//     \"discount\": 0,\r\n//     \"notes\": \"شراء أدوية مباشرة من الصيدلية بدون كشف\",\r\n//     \"items\": [\r\n//         {\r\n//             \"item_type\": \"product\",\r\n//             \"service_id\": null,\r\n//             \"product_id\": 1,\r\n//             \"quantity\": 3\r\n//         }\r\n//     ]\r\n// }\r\n//3. حالة إرسال appointment_id صراحة (حجز مسبق معروف رقمه)\r\n// {\r\n//     \"patient_id\": 1,\r\n//     \"appointment_id\": 4,\r\n//     \"type\": \"session\",\r\n//     \"payment_method\": \"cash\",\r\n//     \"doctor_id\": 2,\r\n//     \"nurse_id\": null,\r\n//     \"discount\": 0,\r\n//     \"notes\": null,\r\n//     \"items\": [\r\n//         {\r\n//             \"item_type\": \"service\",\r\n//             \"service_id\": 20,\r\n//             \"product_id\": null,\r\n//             \"quantity\": 1\r\n//         }\r\n//     ]\r\n// }",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -2676,7 +2713,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n    \"user_id\": 4,\n    \"title\": \"عقد موظف استقبال وعلاقات مرضى\",\n    \"contract_type\": \"receptionist\",\n    \"is_active\": true,\n    \"hourly_rate\": 0,\n    \"overtime_hour_rate\": 25,\n    \"late_deduction_rate_per_hour\": 30,\n    \"applies_department_commission\": true,\n    \"department_commissions\": [\n        {\n            \"department_id\": 1,\n            \"percentage\": 0.05\n        },\n        {\n            \"department_id\": 2,\n            \"percentage\": 0.05\n        }\n    ],\n    \"notes\": \"راتب أساسي من جدول المستخدمين + نسبة 0.05% من مبيعات أقسام العلاج الطبيعي والتغذية والجلدية\"\n}",
+                  "raw": "{\n    \"user_id\": 3,\n    \"title\": \"عقد موظف استقبال \",\n    \"contract_type\": \"receptionist\",\n    \"is_active\": true,\n    \"hourly_rate\": 0,\n    \"overtime_hour_rate\": 0,\n    \"late_deduction_rate_per_hour\": 0,\n    \"applies_department_commission\": true,\n    \"department_commissions\": [\n        {\n            \"department_id\": 1,\n            \"percentage\": 0.05\n        },\n        {\n            \"department_id\": 2,\n            \"percentage\": 0.05\n        },\n        {\n            \"department_id\": 3,\n            \"percentage\": 0.05\n        }\n    ],\n    \"notes\": \"راتب أساسي من جدول المستخدمين + نسبة 0.05% من مبيعات أقسام العلاج الطبيعي والتغذية والجلدية\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -2758,7 +2795,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n    \"user_id\": 6,\n    \"title\": \"عقد أخصائي علاج طبيعي وتأهيل\",\n    \"contract_type\": \"doctor\",\n    \"is_active\": true,\n    \"service_commissions\": [\n        {\n            \"service_id\": 1,\n            \"commission_type\": \"fixed\",\n            \"commission_value\": 50.00\n        },\n        {\n            \"service_id\": 2,\n            \"commission_type\": \"fixed\",\n            \"commission_value\": 40.00\n        },\n        {\n            \"service_id\": 3,\n            \"commission_type\": \"fixed\",\n            \"commission_value\": 60.00\n        },\n        {\n            \"service_id\": 4,\n            \"commission_type\": \"fixed\",\n            \"commission_value\": 137.50\n        },\n        {\n            \"service_id\": 5,\n            \"commission_type\": \"fixed\",\n            \"commission_value\": 178.50\n        },\n        {\n            \"service_id\": 6,\n            \"commission_type\": \"fixed\",\n            \"commission_value\": 125.00\n        },\n        {\n            \"service_id\": 7,\n            \"commission_type\": \"fixed\",\n            \"commission_value\": 5.00\n        },\n        {\n            \"service_id\": 8,\n            \"commission_type\": \"fixed\",\n            \"commission_value\": 5.00\n        },\n        {\n            \"service_id\": 9,\n            \"commission_type\": \"fixed\",\n            \"commission_value\": 125.00\n        }\n    ],\n    \"notes\": \"عمولات نقدية ثابتة محددة لكل خدمة بغض النظر عن تغير سعر بيع الخدمة للمرضى\"\n}",
+                  "raw": "{\n    \"user_id\": 4,\n    \"title\": \"عقد أخصائي علاج طبيعي وتأهيل\",\n    \"contract_type\": \"doctor\",\n    \"is_active\": true,\n    \"service_commissions\": [\n        {\n            \"service_id\": 13,\n            \"commission_type\": \"fixed\",\n            \"commission_value\": 50.00\n        },\n        {\n            \"service_id\": 14,\n            \"commission_type\": \"fixed\",\n            \"commission_value\": 40.00\n        }\n    ],\n    \"notes\": \"عمولات نقدية ثابتة محددة لكل خدمة بغض النظر عن تغير سعر بيع الخدمة للمرضى\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -3006,6 +3043,26 @@
                       "value": "2026-09"
                     },
                     {
+                      "key": "start_date",
+                      "value": "2026-09-01",
+                      "disabled": true
+                    },
+                    {
+                      "key": "end_date",
+                      "value": "2026-09-07",
+                      "disabled": true
+                    },
+                    {
+                      "key": "date_from",
+                      "value": "2026-09-01",
+                      "disabled": true
+                    },
+                    {
+                      "key": "date_to",
+                      "value": "2026-09-30",
+                      "disabled": true
+                    },
+                    {
                       "key": "user_id",
                       "value": "5",
                       "disabled": true
@@ -3052,7 +3109,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n    \"user_id\": 5,\n    \"month\": \"2026-09\",\n    \"holiday_days\": 2,\n    \"other_allowances\": 150,\n    \"deductions\": 50,\n    \"notes\": \"احتساب شهر 9 مع إضافة بدل تصوير وخصم سلفة\"\n}",
+                  "raw": "// 1. احتساب راتب لفترة مرنة مخصصة (أسبوعي / نصف شهري / دورة 26 إلى 25)\r\n{\r\n    \"user_id\": 5,\r\n    \"start_date\": \"2026-09-01\",\r\n    \"end_date\": \"2026-09-07\",\r\n    \"holiday_days\": 0,\r\n    \"other_allowances\": 0,\r\n    \"deductions\": 0,\r\n    \"notes\": \"راتب أسبوعي عن الأسبوع الأول من سبتمبر\"\r\n}\r\n\r\n// 2. احتساب شهري تقليدي (شهر كامل تقويمي)\r\n// {\r\n//     \"user_id\": 5,\r\n//     \"month\": \"2026-09\",\r\n//     \"holiday_days\": 0,\r\n//     \"other_allowances\": 0,\r\n//     \"deductions\": 0\r\n// }",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -3073,7 +3130,7 @@
               "response": []
             },
             {
-              "name": "Generate All Payrolls (توليد مسيرات الرواتب لكافة الموظفين دفعة واحدة)",
+              "name": "Generate All Payrolls (توليد نظام الرواتب لكافة الموظفين دفعة واحدة)",
               "request": {
                 "auth": {
                   "type": "bearer",
@@ -3094,7 +3151,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n    \"month\": \"2026-09\"\n}",
+                  "raw": "// 1. توليد لكافة الموظفين لفترة مرنة مخصصة (مثلاً من 26 إلى 25 أو فترة أسبوعية)\r\n{\r\n    \"start_date\": \"2026-08-26\",\r\n    \"end_date\": \"2026-09-25\"\r\n}\r\n\r\n// 2. توليد شهري تقليدي\r\n// {\r\n//     \"month\": \"2026-09\"\r\n// }",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -3115,7 +3172,7 @@
               "response": []
             },
             {
-              "name": "Show Payroll (عرض المسير وتفنيد كافة البنود المحتسبة)",
+              "name": "Show Payroll (عرض المرتب وتفنيد كافة البنود المحتسبة)",
               "request": {
                 "auth": {
                   "type": "bearer",
@@ -3190,7 +3247,7 @@
               "response": []
             },
             {
-              "name": "Approve Payroll (اعتماد المسير من الإدارة)",
+              "name": "Approve Payroll (اعتماد المرتب من الإدارة)",
               "request": {
                 "auth": {
                   "type": "bearer",

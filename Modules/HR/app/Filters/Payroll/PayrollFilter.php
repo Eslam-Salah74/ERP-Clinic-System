@@ -11,8 +11,22 @@ class PayrollFilter extends Filters
         'month',
         'status',
         'target_achieved',
+        'start_date',
+        'end_date',
+        'date_from',
+        'date_to',
         'search',
     ];
+
+    public function dateFrom($date)
+    {
+        return $this->builder->where('start_date', '>=', $date);
+    }
+
+    public function dateTo($date)
+    {
+        return $this->builder->where('end_date', '<=', $date);
+    }
 
     public function search($search)
     {

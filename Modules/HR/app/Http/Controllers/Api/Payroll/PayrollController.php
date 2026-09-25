@@ -50,11 +50,13 @@ class PayrollController extends Controller implements HasMiddleware
 
     public function generateAll(Request $request)
     {
-        $request->validate([
-            'month' => ['required', 'date_format:Y-m'],
+        $validated = $request->validate([
+            'month' => ['nullable', 'date_format:Y-m', 'required_without:start_date'],
+            'start_date' => ['nullable', 'date_format:Y-m-d', 'required_without:month'],
+            'end_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:start_date', 'required_with:start_date'],
         ]);
 
-        return $this->payrollService->generateAll($request->input('month'));
+        return $this->payrollService->generateAll($validated);
     }
 
     public function show($id)
