@@ -43,16 +43,16 @@ class StoreInvoiceRequest extends FormRequest
             'notes' => ['nullable', 'string'],
 
             'items' => ['required', 'array', 'min:1'],
-            'items.*.item_type' => ['required', 'in:service,product'],
+            'items.*.item_type' => ['required', 'in:service,product,package,package_consumption,package_debt_payment'],
 
             'items.*.service_id' => [
                 'required_if:items.*.item_type,service',
-                'prohibited_if:items.*.item_type,product',
+                'prohibited_if:items.*.item_type,product,package,package_debt_payment',
                 'nullable',
                 'exists:services,id'
             ],
             'items.*.service_items_ids' => [
-                'prohibited_if:items.*.item_type,product',
+                'prohibited_if:items.*.item_type,product,package,package_debt_payment',
                 'nullable',
                 'array'
             ],
@@ -62,12 +62,37 @@ class StoreInvoiceRequest extends FormRequest
             ],
             'items.*.product_id' => [
                 'required_if:items.*.item_type,product',
-                'prohibited_if:items.*.item_type,service',
+                'prohibited_if:items.*.item_type,service,package,package_consumption,package_debt_payment',
                 'nullable',
                 'exists:items,id'
             ],
 
-            'items.*.quantity' => ['required_if:items.*.item_type,product', 'nullable', 'integer', 'min:1'],
+            'items.*.package_id' => [
+                'required_if:items.*.item_type,package',
+                'nullable',
+                'exists:packages,id'
+            ],
+
+            'items.*.patient_package_balance_id' => [
+                'required_if:items.*.item_type,package_consumption',
+                'nullable',
+                'exists:patient_package_balances,id'
+            ],
+
+            'items.*.patient_package_id' => [
+                'required_if:items.*.item_type,package_debt_payment',
+                'nullable',
+                'exists:patient_packages,id'
+            ],
+
+            'items.*.amount' => [
+                'required_if:items.*.item_type,package_debt_payment',
+                'nullable',
+                'numeric',
+                'min:0.01'
+            ],
+
+            'items.*.quantity' => ['nullable', 'numeric', 'min:0.01'],
         ];
     }
 
@@ -78,7 +103,9 @@ class StoreInvoiceRequest extends FormRequest
             $items = $this->input('items', []);
 
             foreach ($items as $index => $item) {
-                if (($item['item_type'] ?? null) === 'product' && !empty($item['product_id'])) {
+                $itemType = $item['item_type'] ?? null;
+
+                if ($itemType === 'product' && !empty($item['product_id'])) {
                     $product = Item::find($item['product_id']);
 
                     if ($product) {
@@ -88,6 +115,35 @@ class StoreInvoiceRequest extends FormRequest
                             $validator->errors()->add("items.{$index}.product_id", "عذراً، الصنف ({$product->name}) نفذ من المخزن (رصيده صفر).");
                         } elseif ($requestedQty > $product->current_stock) {
                             $validator->errors()->add("items.{$index}.quantity", "الكمية المطلوبة ({$requestedQty}) أكبر من المتاح في المخزن ({$product->current_stock}) للصنف ({$product->name}).");
+                        }
+                    }
+                } elseif ($itemType === 'package_consumption' && !empty($item['patient_package_balance_id'])) {
+                    $balance = \Modules\Reception\Models\PatientPackageBalance::with('patientPackage')->find($item['patient_package_balance_id']);
+                    if ($balance) {
+                        if ($balance->patientPackage && $balance->patientPackage->patient_id != $this->input('patient_id')) {
+                            $validator->errors()->add("items.{$index}.patient_package_balance_id", "رصيد الباقة المحدد لا يتبع لهذا المريض.");
+                        }
+                        if ($balance->patientPackage && $balance->patientPackage->status->value !== 'active') {
+                            $validator->errors()->add("items.{$index}.patient_package_balance_id", "هذه الباقة غير نشطة أو مكتملة ولا يمكن الاستهلاك منها.");
+                        }
+                        $requestedQty = (float) ($item['quantity'] ?? 1);
+                        if ($requestedQty > (float) $balance->remaining_quantity) {
+                            $name = $balance->custom_name ?? ($balance->service ? $balance->service->name : 'الرصيد');
+                            $validator->errors()->add("items.{$index}.quantity", "الرصيد المتبقي للبند ({$name}) هو ({$balance->remaining_quantity})، لا يمكن استهلاك ({$requestedQty}).");
+                        }
+                    }
+                } elseif ($itemType === 'package_debt_payment' && !empty($item['patient_package_id'])) {
+                    $pkg = \Modules\Reception\Models\PatientPackage::find($item['patient_package_id']);
+                    if ($pkg) {
+                        if ($pkg->patient_id != $this->input('patient_id')) {
+                            $validator->errors()->add("items.{$index}.patient_package_id", "هذه الباقة لا تخص هذا المريض.");
+                        }
+                        if ((float) $pkg->remaining_amount <= 0) {
+                            $validator->errors()->add("items.{$index}.patient_package_id", "هذه الباقة مسددة بالكامل ولا توجد عليها أي مديونية.");
+                        }
+                        $payAmount = (float) ($item['amount'] ?? 0);
+                        if ($payAmount > (float) $pkg->remaining_amount) {
+                            $validator->errors()->add("items.{$index}.amount", "المبلغ المراد سداده ({$payAmount} ج) أكبر من إجمالي المتبقي على الباقة ({$pkg->remaining_amount} ج).");
                         }
                     }
                 }

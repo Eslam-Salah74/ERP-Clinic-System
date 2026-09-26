@@ -8,4 +8,5 @@ enum InvoiceTypeEnum: string
     case SESSION = 'session';           // جلسة طبية (يتطلب دكتور وممكن ممرضة)
     case FOLLOW_UP = 'follow_up';       // متابعة (يتطلب دكتور)
     case DIRECT_SALE = 'direct_sale';   // بيع مباشر أدوية/مستلزمات (لا يتطلب دكتور)
+    case PACKAGE_SALE = 'package_sale'; // بيع باقة / عرض (لا يتطلب دكتور إجباري)
 }

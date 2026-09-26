@@ -20,6 +20,11 @@ use Modules\Reception\Models\Shift;
 use Modules\Reception\Models\Transaction;
 use Modules\Setup\Models\Service;
 use Modules\Setup\Models\Setting;
+use Modules\Setup\Models\Package;
+use Modules\Reception\Models\PatientPackage;
+use Modules\Reception\Models\PatientPackageBalance;
+use Modules\Reception\Models\PatientPackageConsumption;
+use Modules\Reception\Enums\PatientPackageStatusEnum;
 use Modules\Reception\Enums\VisitTypeEnum;
 
 class InvoiceService
@@ -39,7 +44,7 @@ class InvoiceService
      */
     public function store($request)
     {
-        $validated = $request->validated();
+        $validated = is_array($request) ? $request : (method_exists($request, 'validated') && $request->validated() ? $request->validated() : $request->all());
         $userId = Auth::id();
 
         $activeShift = Shift::where('user_id', $userId)
@@ -60,7 +65,7 @@ class InvoiceService
                 $doctorId = $validated['doctor_id'] ?? null;
                 $appointment = null;
 
-                if ($invoiceType === InvoiceTypeEnum::DIRECT_SALE->value) {
+                if ($invoiceType === InvoiceTypeEnum::DIRECT_SALE->value || $invoiceType === InvoiceTypeEnum::PACKAGE_SALE->value) {
                     $appointmentId = null;
                 } else {
                     if (empty($appointmentId)) {
@@ -197,7 +202,7 @@ class InvoiceService
 
                         // سعر الوحدة = سعر الخدمة الأساسي + مجموع أسعار المواد المستهلكة
                         $unitPrice = $serviceBasePrice + $itemsTotalPrice;
-                    } else {
+                    } elseif ($item['item_type'] === 'product') {
                         $inventoryItem = Item::where('id', $item['product_id'])->lockForUpdate()->first();
                         if (!$inventoryItem) {
                             throw new \Exception('المنتج المحدد غير موجود في المخزن.');
@@ -209,6 +214,37 @@ class InvoiceService
 
                         $itemName = $inventoryItem->name;
                         $unitPrice = (float) $inventoryItem->selling_price;
+                    } elseif ($item['item_type'] === 'package') {
+                        $package = Package::with('items')->find($item['package_id']);
+                        if (!$package) {
+                            throw new \Exception('الباقة المحددة غير موجودة.');
+                        }
+                        $itemName = 'باقة: ' . $package->name;
+                        $unitPrice = (float) $package->price;
+                    } elseif ($item['item_type'] === 'package_consumption') {
+                        $balance = PatientPackageBalance::with(['patientPackage.package', 'service', 'product'])->find($item['patient_package_balance_id']);
+                        if (!$balance) {
+                            throw new \Exception('رصيد الباقة المحدد غير موجود.');
+                        }
+                        $requestedQty = (float) ($item['quantity'] ?? 1);
+                        if ($requestedQty > (float) $balance->remaining_quantity) {
+                            throw new \Exception("الرصيد المتبقي للبند ({$balance->remaining_quantity}) غير كافٍ لاستهلاك ({$requestedQty}).");
+                        }
+                        $servTitle = $balance->custom_name ?? ($balance->service ? $balance->service->name : ($balance->product ? $balance->product->name : 'باقة'));
+                        $itemName = 'استهلاك باقة: ' . $servTitle;
+                        $unitPrice = 0.00; // مجانية في فاتورة اليوم لأنها مسددة أو مقيدة على الباقة
+                    } elseif ($item['item_type'] === 'package_debt_payment') {
+                        $pkg = PatientPackage::with('package')->find($item['patient_package_id']);
+                        if (!$pkg) {
+                            throw new \Exception('الباقة المحددة غير موجودة.');
+                        }
+                        $payAmount = (float) ($item['amount'] ?? 0);
+                        if ($payAmount <= 0) {
+                            throw new \Exception('المبلغ المطلوب سداده يجب أن يكون أكبر من الصفر.');
+                        }
+                        $itemName = 'سداد قسط باقة: ' . $pkg->package->name;
+                        $unitPrice = $payAmount;
+                        $quantity = 1;
                     }
 
                     $totalPrice = $unitPrice * $quantity;
@@ -216,14 +252,22 @@ class InvoiceService
 
                     $processedItems[] = [
                         'item_type' => $item['item_type'],
-                        'service_id' => $item['service_id'] ?? null,
-                        'product_id' => $item['product_id'] ?? null,
+                        'service_id' => $item['service_id'] ?? ($balance->service_id ?? null),
+                        'product_id' => $item['product_id'] ?? ($balance->product_id ?? null),
+                        'package_id' => $item['package_id'] ?? ($package->id ?? ($balance->patientPackage->package_id ?? ($pkg->package_id ?? null))),
+                        'patient_package_id' => $item['patient_package_id'] ?? ($balance->patient_package_id ?? ($pkg->id ?? null)),
+                        'patient_package_balance_id' => $item['patient_package_balance_id'] ?? ($balance->id ?? null),
                         'service_items_ids' => !empty($consumedIds) ? array_values(array_unique($consumedIds)) : null,
                         'item_name' => $itemName,
                         'unit_price' => $unitPrice,
                         'quantity' => $quantity,
                         'total_price' => $totalPrice,
                         'service_consumed_items' => $serviceItemsToDeduct ?? [],
+                        '_package_model' => $package ?? null,
+                        '_balance_model' => $balance ?? null,
+                        '_pkg_subscription' => $pkg ?? null,
+                        '_debt_pay_amount' => $payAmount ?? null,
+                        '_notes' => $item['notes'] ?? null,
                     ];
                 }
 
@@ -274,7 +318,20 @@ class InvoiceService
 
                 foreach ($processedItems as $itemData) {
                     $consumedItems = $itemData['service_consumed_items'] ?? [];
-                    unset($itemData['service_consumed_items']);
+                    $packageModel = $itemData['_package_model'] ?? null;
+                    $balanceModel = $itemData['_balance_model'] ?? null;
+                    $pkgSubscription = $itemData['_pkg_subscription'] ?? null;
+                    $debtPayAmount = $itemData['_debt_pay_amount'] ?? null;
+                    $consumptionNotes = $itemData['_notes'] ?? null;
+
+                    unset(
+                        $itemData['service_consumed_items'],
+                        $itemData['_package_model'],
+                        $itemData['_balance_model'],
+                        $itemData['_pkg_subscription'],
+                        $itemData['_debt_pay_amount'],
+                        $itemData['_notes']
+                    );
 
                     $invoiceItem = $invoice->items()->create($itemData);
 
@@ -290,6 +347,85 @@ class InvoiceService
                                 $inventoryItem->decrement('current_stock', $consumed['quantity']);
                             }
                         }
+                    } elseif ($itemData['item_type'] === 'package' && $packageModel) {
+                        // 1. إنشاء اشتراك الباقة ومحفظة المريض
+                        $pkgTotalPrice = (float) $invoiceItem->total_price;
+                        $pkgPaid = min($invoice->paid_amount, $pkgTotalPrice);
+                        $pkgRemaining = max(0, $pkgTotalPrice - $pkgPaid);
+
+                        $patientPackage = PatientPackage::create([
+                            'patient_id' => $patientId,
+                            'package_id' => $packageModel->id,
+                            'invoice_id' => $invoice->id,
+                            'total_price' => $pkgTotalPrice,
+                            'paid_amount' => $pkgPaid,
+                            'remaining_amount' => $pkgRemaining,
+                            'status' => PatientPackageStatusEnum::ACTIVE,
+                            'start_date' => today(),
+                            'expires_at' => $packageModel->validity_days ? today()->addDays($packageModel->validity_days) : null,
+                            'notes' => $invoice->notes,
+                            'created_by' => $userId,
+                        ]);
+
+                        $invoiceItem->update(['patient_package_id' => $patientPackage->id]);
+
+                        // 2. تفريغ أرصدة بنود الباقة في المحفظة
+                        foreach ($packageModel->items as $pItem) {
+                            $balanceTotalQty = (float) ($pItem->quantity * $invoiceItem->quantity);
+                            PatientPackageBalance::create([
+                                'patient_package_id' => $patientPackage->id,
+                                'item_type' => $pItem->item_type,
+                                'service_id' => $pItem->service_id,
+                                'product_id' => $pItem->product_id,
+                                'custom_name' => $pItem->custom_name,
+                                'total_quantity' => $balanceTotalQty,
+                                'consumed_quantity' => 0,
+                                'remaining_quantity' => $balanceTotalQty,
+                                'unit' => $pItem->unit,
+                            ]);
+                        }
+                    } elseif ($itemData['item_type'] === 'package_consumption' && $balanceModel) {
+                        // 1. خصم الرصيد المستهلك من محفظة المريض
+                        $consumeQty = (float) $invoiceItem->quantity;
+                        $balanceModel->increment('consumed_quantity', $consumeQty);
+                        $balanceModel->decrement('remaining_quantity', $consumeQty);
+
+                        // 2. تسجيل حركة الاستهلاك لربطها بالطبيب والعمولة والحجز
+                        PatientPackageConsumption::create([
+                            'patient_package_id' => $balanceModel->patient_package_id,
+                            'patient_package_balance_id' => $balanceModel->id,
+                            'appointment_id' => $appointmentId,
+                            'invoice_id' => $invoice->id,
+                            'invoice_item_id' => $invoiceItem->id,
+                            'doctor_id' => $doctorId ?? $userId,
+                            'nurse_id' => $nurseId,
+                            'consumed_quantity' => $consumeQty,
+                            'unit' => $balanceModel->unit,
+                            'notes' => $consumptionNotes,
+                            'consumed_at' => now(),
+                            'created_by' => $userId,
+                        ]);
+
+                        // 3. خصم من المخزن لو كانت مادة مستهلكة (فيلر/بوتوكس)
+                        if ($balanceModel->product_id) {
+                            $inventoryItem = Item::find($balanceModel->product_id);
+                            if ($inventoryItem) {
+                                $inventoryItem->decrement('current_stock', $consumeQty);
+                            }
+                        }
+
+                        // 4. فحص اكتمال الباقة إذا نفدت جميع الأرصدة
+                        $hasRemaining = PatientPackageBalance::where('patient_package_id', $balanceModel->patient_package_id)
+                            ->where('remaining_quantity', '>', 0)
+                            ->exists();
+
+                        if (!$hasRemaining) {
+                            $balanceModel->patientPackage()->update(['status' => PatientPackageStatusEnum::COMPLETED]);
+                        }
+                    } elseif ($itemData['item_type'] === 'package_debt_payment' && $pkgSubscription && $debtPayAmount > 0) {
+                        // سداد جزء من مديونية الباقة
+                        $pkgSubscription->increment('paid_amount', $debtPayAmount);
+                        $pkgSubscription->decrement('remaining_amount', $debtPayAmount);
                     }
                 }
 

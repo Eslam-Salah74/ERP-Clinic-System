@@ -308,9 +308,9 @@ class PayrollService
                 $clinicRevenueGenerated += (float) $inv->grand_total;
 
                 foreach ($inv->items as $item) {
-                    if ($item->item_type === 'service' && $item->service) {
+                    if (in_array($item->item_type, ['service', 'package_consumption']) && $item->service) {
                         $service = $item->service;
-                        $quantity = (int) $item->quantity;
+                        $quantity = (float) $item->quantity;
 
                         // البحث عن الخدمة في قائمة خدمات عقد الطبيب
                         $specificComm = $contract?->serviceCommissions?->firstWhere('service_id', $service->id);

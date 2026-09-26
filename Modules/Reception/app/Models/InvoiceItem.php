@@ -9,7 +9,8 @@ use Modules\Setup\Models\Service;
 class InvoiceItem extends Model
 {
     protected $fillable = [
-        'invoice_id', 'item_type', 'service_id', 'product_id', 'service_items_ids',
+        'invoice_id', 'item_type', 'service_id', 'product_id', 'package_id',
+        'patient_package_id', 'patient_package_balance_id', 'service_items_ids',
         'item_name', 'unit_price', 'quantity', 'total_price', 'returned_qty'
     ];
 
@@ -32,6 +33,21 @@ class InvoiceItem extends Model
     public function product()
     {
         return $this->belongsTo(Item::class, 'product_id');
+    }
+
+    public function package()
+    {
+        return $this->belongsTo(\Modules\Setup\Models\Package::class, 'package_id');
+    }
+
+    public function patientPackage()
+    {
+        return $this->belongsTo(PatientPackage::class, 'patient_package_id');
+    }
+
+    public function patientPackageBalance()
+    {
+        return $this->belongsTo(PatientPackageBalance::class, 'patient_package_balance_id');
     }
 
     public function getServiceItemsAttribute()

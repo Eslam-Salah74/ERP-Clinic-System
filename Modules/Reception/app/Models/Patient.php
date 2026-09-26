@@ -47,6 +47,11 @@ class Patient extends Model
     {
         return $this->hasMany(FollowUp::class, 'patient_id');
     }
+    // جميع باقات واشتراكات المريض
+    public function packages()
+    {
+        return $this->hasMany(PatientPackage::class, 'patient_id');
+    }
 
     public function scopeFilter($query, PatientFilter $filter)
     {

@@ -936,6 +936,296 @@
               "response": []
             }
           ]
+        },
+        {
+          "name": "Packages & Offers (باقات وعروض العيادة - جلسات، نبضات، ميزو)",
+          "item": [
+            {
+              "name": "Get Packages",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/packages",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "packages"
+                  ],
+                  "query": [
+                    {
+                      "key": "is_active",
+                      "value": "1",
+                      "disabled": true
+                    },
+                    {
+                      "key": "department_id",
+                      "value": "1",
+                      "disabled": true
+                    },
+                    {
+                      "key": "type",
+                      "value": "sessions",
+                      "disabled": true
+                    },
+                    {
+                      "key": "search",
+                      "value": "ليزر",
+                      "disabled": true
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Package - Sessions (باقة جلسات ليزر - نص ايد + دقن)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"عرض ليزر نص إيد + دقن (8 جلسات)\",\n    \"description\": \"باقة 8 جلسات نص إيد + 8 جلسات دقن مع إمكانية استهلاك كل خدمة بشكل مستقل\",\n    \"department_id\": 1,\n    \"type\": \"sessions\",\n    \"original_price\": 4000.0,\n    \"package_price\": 2800.0,\n    \"validity_days\": 180,\n    \"is_active\": true,\n    \"items\": [\n        {\n            \"item_type\": \"service\",\n            \"service_id\": 1,\n            \"quantity\": 8,\n            \"unit_price\": 175.0,\n            \"notes\": \"8 جلسات نص إيد\"\n        },\n        {\n            \"item_type\": \"service\",\n            \"service_id\": 2,\n            \"quantity\": 8,\n            \"unit_price\": 175.0,\n            \"notes\": \"8 جلسات دقن\"\n        }\n    ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/packages",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "packages"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Package - Pulses (باقة نبضات ليزر - 2000 نبضة)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"كارت نبضات ليزر (2000 نبضة)\",\n    \"description\": \"محفظة نبضات ليزر يتم الخصم منها بحسب استهلاك كل جلسة ومنطقة\",\n    \"department_id\": 1,\n    \"type\": \"pulses\",\n    \"original_price\": 3000.0,\n    \"package_price\": 2000.0,\n    \"validity_days\": 365,\n    \"is_active\": true,\n    \"items\": [\n        {\n            \"item_type\": \"pulse\",\n            \"service_id\": null,\n            \"quantity\": 2000,\n            \"unit_price\": 1.0,\n            \"notes\": \"رصيد 2000 نبضة ليزر دايود / كانديلا\"\n        }\n    ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/packages",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "packages"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Package - Units / Volume (باقة ميزو / فيلر / بوتوكس بالملي)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"باقة نضارة وشد (نص ملي فيلر + 2 ملي بوتوكس + 1 ملي شد)\",\n    \"description\": \"باقة متكاملة لحقن الفيلر والبوتوكس والميزو بقيمة مخفضة والخصم بالملي لكل جلسة\",\n    \"department_id\": 1,\n    \"type\": \"units_volume\",\n    \"original_price\": 8000.0,\n    \"package_price\": 6000.0,\n    \"validity_days\": 180,\n    \"is_active\": true,\n    \"items\": [\n        {\n            \"item_type\": \"product\",\n            \"product_id\": 1,\n            \"quantity\": 0.5,\n            \"unit_price\": 2000.0,\n            \"notes\": \"نصف ملي فيلر\"\n        },\n        {\n            \"item_type\": \"product\",\n            \"product_id\": 2,\n            \"quantity\": 2.0,\n            \"unit_price\": 1500.0,\n            \"notes\": \"2 ملي بوتوكس\"\n        },\n        {\n            \"item_type\": \"product\",\n            \"product_id\": 3,\n            \"quantity\": 1.0,\n            \"unit_price\": 2000.0,\n            \"notes\": \"1 ملي ميزو شد وتفتيح\"\n        }\n    ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/packages",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "packages"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Show Package",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/packages/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "packages",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Package",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"package_price\": 2700.0,\n    \"is_active\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/packages/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "packages",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Package",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/packages/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "packages",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
         }
       ]
     },
@@ -1930,6 +2220,261 @@
           ]
         },
         {
+          "name": "Patient Packages & Wallets (محفظة باقات المريض واستهلاك الجلسات)",
+          "item": [
+            {
+              "name": "Get Patient Packages (سجل باقات المرضى)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/patient-packages",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "patient-packages"
+                  ],
+                  "query": [
+                    {
+                      "key": "patient_id",
+                      "value": "1",
+                      "disabled": true
+                    },
+                    {
+                      "key": "status",
+                      "value": "active",
+                      "disabled": true
+                    },
+                    {
+                      "key": "package_id",
+                      "value": "1",
+                      "disabled": true
+                    },
+                    {
+                      "key": "search",
+                      "value": "أحمد",
+                      "disabled": true
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Show Patient Package Details (تفاصيل الباقة والأرصدة المتبقية والاستهلاك)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/patient-packages/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "patient-packages",
+                    "1"
+                  ]
+                },
+                "description": "يعرض تفاصيل الباقة، المبلغ المدفوع والمتبقي (الديون)، قائمة الأرصدة المتبقية لكل خدمة (رصيد نص إيد، رصيد دقن، نبضات، ملي)، وسجل حركات الاستهلاك السابقة."
+              },
+              "response": []
+            },
+            {
+              "name": "Get Patient Active Packages (الباقات النشطة للمريض فقط)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/patients/1/active-packages",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "patients",
+                    "1",
+                    "active-packages"
+                  ]
+                },
+                "description": "نقطة سريعة لموظف الاستقبال بمجرد اختيار المريض لعرض الباقات النشطة والأرصدة الصالحة للاستخدام فوراً."
+              },
+              "response": []
+            },
+            {
+              "name": "Subscribe Patient to Package (شراء باقة مع دفع كلي أو دفع مقدم وأقساط)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "// 1. شراء باقة مع سداد كامل المبلغ نقداً كاش\n{\n    \"patient_id\": 1,\n    \"package_id\": 1,\n    \"paid_amount\": 2800.00,\n    \"payment_method\": \"cash\",\n    \"notes\": \"سداد كامل قيمة الباقة كاش\"\n}\n\n// 2. شراء باقة مع دفع مقدم 1000 ج والباقي 1800 ج متبقي كديون تُسدد على الجلسات القادمة\n// {\n//     \"patient_id\": 1,\n//     \"package_id\": 1,\n//     \"paid_amount\": 1000.00,\n//     \"payment_method\": \"cash\",\n//     \"notes\": \"سداد مقدم 1000 والمتبقي 1800 ج يتم تحصيله وقت الجلسات\"\n// }",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/patient-packages/subscribe",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "patient-packages",
+                    "subscribe"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Consume Session / Balance (خصم جلسة / نبضات / مل بضغطة زر وبدون فاتورة)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "// استهلاك جلسة بضغطة زر من الاستقبال بدون فتح فاتورة، مع احتساب عمولة الطبيب تلقائياً في الرواتب\n{\n    \"patient_package_balance_id\": 1,\n    \"quantity\": 1,\n    \"doctor_id\": 4,\n    \"nurse_id\": 5,\n    \"notes\": \"تم عمل جلسة نص إيد ليزر، وتأجيل جلسة الدقن لزيارة قادمة\"\n}\n\n// مثال لاستهلاك نبضات ليزر (مثلاً خصم 350 نبضة)\n// {\n//     \"patient_package_balance_id\": 3,\n//     \"quantity\": 350,\n//     \"doctor_id\": 4,\n//     \"nurse_id\": 5,\n//     \"notes\": \"استهلاك 350 نبضة ليزر جلسة منطقة البطن\"\n// }",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/patient-packages/consume",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "patient-packages",
+                    "consume"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Pay Package Debt (سداد دفعة / قسط من متبقي الباقة)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"amount\": 500.00,\n    \"payment_method\": \"cash\",\n    \"notes\": \"سداد قسط بقيمة 500 ج من المتبقي على باقة الليزر\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/patient-packages/1/pay-debt",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "patient-packages",
+                    "1",
+                    "pay-debt"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
           "name": "Invoices & Refunds (CRUD)",
           "item": [
             {
@@ -2013,7 +2558,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": " //Note:Invoice Type => 1.consultation كشف / استشارة (يتطلب دكتور)\r\n //                     2.session جلسة طبية (يتطلب دكتور وممكن ممرضة)\r\n //                     3.direct_sale بيع مباشر أدوية/مستلزمات (لا يتطلب دكتور)  \r\n\r\n //1. الحالة العامة: كشف طبي أو جلسة (مع الكتشف الذكي للحجز أو الكشف الفوري Walk-in)\r\n{\r\n    \"patient_id\": 1,\r\n    \"appointment_id\": null,\r\n    \"type\": \"session\",\r\n    \"payment_method\": \"cash\",\r\n    \"doctor_id\": 4,\r\n    \"nurse_id\": 5,\r\n    \"discount\": 0,\r\n    \"paid_amount\": 300,\r\n    \"notes\": \"جلسة علاج طبيعي سنجل +دبل\",\r\n    \"items\": [\r\n        {\r\n            \"item_type\": \"service\",\r\n            \"service_id\": 29,\r\n            \"service_items_ids\": [1,1] // لو الخدمة كان ليها\r\n        }\r\n        // ,\r\n        // {\r\n        //     \"item_type\": \"service\",\r\n        //     \"service_id\": 14\r\n        //     //\"service_items_ids\": [1,2] لو الخدمة كان ليها\r\n        // }\r\n        ,\r\n        {\r\n            \"item_type\": \"product\",\r\n            \"product_id\": 51,\r\n            \"quantity\": 2\r\n        }\r\n    ]\r\n}\r\n\r\n//2. حالة مبيعات صيدلية مباشرة (direct_sale)\r\n// {\r\n//     \"patient_id\": 1,\r\n//     \"appointment_id\": null,\r\n//     \"type\": \"direct_sale\",\r\n//     \"payment_method\": \"cash\",\r\n//     \"doctor_id\": null,\r\n//     \"nurse_id\": null,\r\n//     \"discount\": 0,\r\n//     \"notes\": \"شراء أدوية مباشرة من الصيدلية بدون كشف\",\r\n//     \"items\": [\r\n//         {\r\n//             \"item_type\": \"product\",\r\n//             \"service_id\": null,\r\n//             \"product_id\": 1,\r\n//             \"quantity\": 3\r\n//         }\r\n//     ]\r\n// }\r\n//3. حالة إرسال appointment_id صراحة (حجز مسبق معروف رقمه)\r\n// {\r\n//     \"patient_id\": 1,\r\n//     \"appointment_id\": 4,\r\n//     \"type\": \"session\",\r\n//     \"payment_method\": \"cash\",\r\n//     \"doctor_id\": 2,\r\n//     \"nurse_id\": null,\r\n//     \"discount\": 0,\r\n//     \"notes\": null,\r\n//     \"items\": [\r\n//         {\r\n//             \"item_type\": \"service\",\r\n//             \"service_id\": 20,\r\n//             \"product_id\": null,\r\n//             \"quantity\": 1\r\n//         }\r\n//     ]\r\n// }",
+                  "raw": " //Note:Invoice Type => 1.consultation كشف / استشارة (يتطلب دكتور)\n //                     2.session جلسة طبية (يتطلب دكتور وممكن ممرضة)\n //                     3.direct_sale بيع مباشر أدوية/مستلزمات (لا يتطلب دكتور)\n //                     4.package_sale بيع باقة/عرض طبي (لا يتطلب دكتور أو حجز مسبق)\n\n //Note:item_type => 1.service (خدمة عادية)\n //                  2.product (منتج/دواء)\n //                  3.package (شراء باقة/عرض)\n //                  4.package_consumption (استهلاك جلسة باقة بقيمة 0 مع احتساب عمولة الطبيب)\n //                  5.package_debt_payment (سداد قسط/متبقي من باقة سابقة)\n\n //1. الحالة العامة: كشف طبي أو جلسة (مع الكشف الذكي للحجز أو الكشف الفوري Walk-in)\n{\n    \"patient_id\": 1,\n    \"appointment_id\": null,\n    \"type\": \"session\",\n    \"payment_method\": \"cash\",\n    \"doctor_id\": 4,\n    \"nurse_id\": 5,\n    \"discount\": 0,\n    \"paid_amount\": 300,\n    \"notes\": \"جلسة علاج طبيعي سنجل + دبل\",\n    \"items\": [\n        {\n            \"item_type\": \"service\",\n            \"service_id\": 29,\n            \"service_items_ids\": [1,1]\n        },\n        {\n            \"item_type\": \"product\",\n            \"product_id\": 51,\n            \"quantity\": 2\n        }\n    ]\n}\n\n//2. حالة شراء باقة/عرض مباشرة من الفواتير (package_sale)\n// {\n//     \"patient_id\": 1,\n//     \"type\": \"package_sale\",\n//     \"payment_method\": \"cash\",\n//     \"paid_amount\": 2800,\n//     \"notes\": \"شراء باقة ليزر 8 جلسات\",\n//     \"items\": [\n//         {\n//             \"item_type\": \"package\",\n//             \"package_id\": 1,\n//             \"quantity\": 1,\n//             \"price\": 2800\n//         }\n//     ]\n// }\n\n//3. حالة استهلاك جلسة من باقة (السعر 0) + شراء كريم (150 ج) في نفس الفاتورة\n// {\n//     \"patient_id\": 1,\n//     \"type\": \"session\",\n//     \"payment_method\": \"cash\",\n//     \"doctor_id\": 4,\n//     \"paid_amount\": 150,\n//     \"items\": [\n//         {\n//             \"item_type\": \"package_consumption\",\n//             \"patient_package_balance_id\": 1,\n//             \"quantity\": 1,\n//             \"price\": 0\n//         },\n//         {\n//             \"item_type\": \"product\",\n//             \"product_id\": 1,\n//             \"quantity\": 1,\n//             \"price\": 150\n//         }\n//     ]\n// }\n\n//4. حالة مبيعات صيدلية مباشرة (direct_sale)\n// {\n//     \"patient_id\": 1,\n//     \"type\": \"direct_sale\",\n//     \"payment_method\": \"cash\",\n//     \"items\": [\n//         {\n//             \"item_type\": \"product\",\n//             \"product_id\": 1,\n//             \"quantity\": 3\n//         }\n//     ]\n// }",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -2196,6 +2741,129 @@
                   "path": [
                     "invoices",
                     "1"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Invoice - Package Sale (شراء باقة عبر الفاتورة مباشرة بدون طبيب)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "// فاتورة شراء باقة كاملة مباشرة من قسم الفواتير (doctor_id و appointment_id اختياريان)\n{\n    \"patient_id\": 1,\n    \"type\": \"package_sale\",\n    \"payment_method\": \"cash\",\n    \"paid_amount\": 2800.00,\n    \"discount\": 0,\n    \"notes\": \"فاتورة شراء عرض ليزر 8 جلسات نص إيد + دقن\",\n    \"items\": [\n        {\n            \"item_type\": \"package\",\n            \"package_id\": 1,\n            \"quantity\": 1,\n            \"price\": 2800.00\n        }\n    ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/invoices",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "invoices"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Invoice - Session with Extra Services (جلسة باقة + خدمة إضافية بفاتورة واحدة)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "// فاتورة تجمع بين جلسة من باقة (بقيمة 0 ج) مع شراء كريم مرطب أو خدمة إضافية غير مشمولة في الباقة\n{\n    \"patient_id\": 1,\n    \"type\": \"session\",\n    \"payment_method\": \"cash\",\n    \"doctor_id\": 4,\n    \"nurse_id\": 5,\n    \"paid_amount\": 150.00,\n    \"notes\": \"استهلاك جلسة باقة + شراء كريم تفتيح من الصيدلية\",\n    \"items\": [\n        {\n            \"item_type\": \"package_consumption\",\n            \"patient_package_balance_id\": 1,\n            \"quantity\": 1,\n            \"price\": 0.00\n        },\n        {\n            \"item_type\": \"product\",\n            \"product_id\": 1,\n            \"quantity\": 1,\n            \"price\": 150.00\n        }\n    ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/invoices",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "invoices"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Invoice - Pay Package Debt (سداد قسط باقة عبر فاتورة عادية)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "// سداد قسط أو دفعة متبقية من ثمن باقة سابقة عن طريق فاتورة رسمية تورّد للخزينة والشفت\n{\n    \"patient_id\": 1,\n    \"type\": \"direct_sale\",\n    \"payment_method\": \"cash\",\n    \"paid_amount\": 500.00,\n    \"notes\": \"سداد دفعة نقدية من متبقي باقة الليزر\",\n    \"items\": [\n        {\n            \"item_type\": \"package_debt_payment\",\n            \"patient_package_id\": 1,\n            \"price\": 500.00\n        }\n    ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/invoices",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "invoices"
                   ]
                 }
               },
