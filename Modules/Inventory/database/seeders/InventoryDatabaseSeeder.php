@@ -25,11 +25,11 @@ class InventoryDatabaseSeeder extends Seeder
         $this->call(PurchaseInvoicePermissionDatabaseSeeder::class);
 
         // 2. البيانات الأساسية المستقلة (الموردين والأصناف)
-        $this->call(SupplierDatabaseSeeder::class);
-        $this->call(ItemDatabaseSeeder::class);
+        // $this->call(SupplierDatabaseSeeder::class);
+        // $this->call(ItemDatabaseSeeder::class);
 
-        // 3. البيانات المرتبطة التي تعتمد على ما سبق (فواتير المشتريات تحتاج لموردين وأصناف)
-        $this->call(PurchaseInvoiceDatabaseSeeder::class);
-        // $this->call([]);
+        // // 3. البيانات المرتبطة التي تعتمد على ما سبق (فواتير المشتريات تحتاج لموردين وأصناف)
+        // $this->call(PurchaseInvoiceDatabaseSeeder::class);
+        // // $this->call([]);
     }
 }

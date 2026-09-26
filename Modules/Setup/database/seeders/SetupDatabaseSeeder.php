@@ -10,6 +10,7 @@ use Modules\Setup\Database\Seeders\Service\ServiceDatabaseSeeder;
 
 use Modules\Setup\Database\Seeders\Department\DepartmentPermissionDatabaseSeeder;
 use Modules\Setup\Database\Seeders\Department\DepartmentDatabaseSeeder;
+use Modules\Setup\Database\Seeders\Package\PackagePermissionDatabaseSeeder;
 
 use Illuminate\Database\Seeder;
 
@@ -23,14 +24,15 @@ class SetupDatabaseSeeder extends Seeder
        $this->call(SettingPermissionDatabaseSeeder::class);
         $this->call(DepartmentPermissionDatabaseSeeder::class);
         $this->call(ServicePermissionDatabaseSeeder::class);
+        $this->call(PackagePermissionDatabaseSeeder::class);
 
         $this->call(SettingDatabaseSeeder::class);
 
-        $this->call(DepartmentDatabaseSeeder::class);
+        // $this->call(DepartmentDatabaseSeeder::class);
 
-        $this->call(ServiceDatabaseSeeder::class);
+        // $this->call(ServiceDatabaseSeeder::class);
 
-        $this->call(ServiceItemDatabaseSeeder::class);
+        // $this->call(ServiceItemDatabaseSeeder::class);
         // $this->call([]);
     }
 }
