@@ -5,6 +5,7 @@ namespace Modules\Reception\Services\Patient;
 use Modules\Reception\Models\Patient;
 use Modules\Reception\Filters\Patient\PatientFilter;
 use Modules\Reception\Http\Resources\Patient\PatientResource;
+use Modules\Reception\Http\Resources\Patient\PatientProfileResource;
 use App\Support\API;
 use Illuminate\Support\Facades\Auth;
 
@@ -72,5 +73,34 @@ class PatientService
         $record = Patient::findOrFail($id);
         $record->delete();
         return API::newInstance()->isOk('Deleted successfully')->build();
+    }
+
+    /**
+     * ملف المريض الشامل (كل ما يخص المريض: خدمات، منتجات، فواتير، مدفوع، متبقي، مواعيد، متابعات)
+     */
+    public function profile($id)
+    {
+        $patient = Patient::with([
+            'creator',
+            'appointments' => fn($q) => $q->with(['doctor', 'service.items', 'creator', 'shift'])->latest('appointment_date'),
+            'invoices' => fn($q) => $q->with([
+                'doctor',
+                'items.service.department',
+                'items.product',
+                'transactions.creator',
+                'creator',
+                'shift'
+            ])->latest(),
+            'followUps' => fn($q) => $q->with(['doctor', 'appointment', 'creator', 'shift'])->latest('follow_up_date'),
+        ])->find($id);
+
+        if (!$patient) {
+            return API::newInstance()->isError('Record not found', 404)->build();
+        }
+
+        return API::newInstance()
+            ->isOk('Patient profile retrieved successfully')
+            ->setData(new PatientProfileResource($patient))
+            ->build();
     }
 }

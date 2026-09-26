@@ -24,7 +24,7 @@ class PatientController extends Controller implements HasMiddleware
     {
         return [
             new Middleware('permission:read patients', only: ['index']),
-            new Middleware('permission:show patients', only: ['show']),
+            new Middleware('permission:show patients', only: ['show', 'profile']),
             new Middleware('permission:create patients', only: ['store']),
             new Middleware('permission:update patients', only: ['update']),
             new Middleware('permission:delete patients', only: ['destroy']),
@@ -44,6 +44,11 @@ class PatientController extends Controller implements HasMiddleware
     public function show($patient)
     {
         return $this->patient->show($patient);
+    }
+
+    public function profile($patient)
+    {
+        return $this->patient->profile($patient);
     }
 
     public function update($patient, UpdatePatientRequest $request)

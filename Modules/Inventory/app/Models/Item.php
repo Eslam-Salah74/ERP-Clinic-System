@@ -39,4 +39,9 @@ class Item extends Model
     {
         return $filter->apply($query);
     }
+
+    public function purchaseItems()
+    {
+        return $this->hasMany(\Modules\Inventory\Models\PurchaseInvoiceItem::class, 'item_id');
+    }
 }

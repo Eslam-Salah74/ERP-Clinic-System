@@ -1488,6 +1488,41 @@
               "response": []
             },
             {
+              "name": "Get Patient Full Profile (ملف المريض الشامل)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/patients/1/profile",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "patients",
+                    "1",
+                    "profile"
+                  ]
+                },
+                "description": "السجل الطبي والشامل للمريض: إجمالي الفواتير، دفع كام وباقي كام، الخدمات المشتراة وتكرارها، المنتجات المشتراة وتفاصيلها، سجل المواعيد، سجل المتابعات، وسجل التحصيلات المالية."
+              },
+              "response": []
+            },
+            {
               "name": "Update Patient",
               "request": {
                 "auth": {
@@ -3639,6 +3674,337 @@
               "path": [
                 "notifications",
                 "check"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "7. Reports & Financial Analytics (التقارير المالية والتشغيلية)",
+      "item": [
+        {
+          "name": "1. Daily Safe Report (تقرير الخزنة اليومية للموظف والشفت)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/reports/daily-safe",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "reports",
+                "daily-safe"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2. Shift Safe Report by ID (تقرير الخزنة لشفت محدد)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/reports/shifts/1/safe",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "reports",
+                "shifts",
+                "1",
+                "safe"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3. Financial Summary & P&L (التقرير المالي الشامل وصافي الأرباح)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/reports/financial-summary?start_date=2026-09-01&end_date=2026-09-30",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "reports",
+                "financial-summary"
+              ],
+              "query": [
+                {
+                  "key": "start_date",
+                  "value": "2026-09-01"
+                },
+                {
+                  "key": "end_date",
+                  "value": "2026-09-30"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4. Departments Report & Top 3 Doctors (تقرير الأقسام وأعلى 3 أطباء)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/reports/departments?start_date=2026-09-01&end_date=2026-09-30",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "reports",
+                "departments"
+              ],
+              "query": [
+                {
+                  "key": "start_date",
+                  "value": "2026-09-01"
+                },
+                {
+                  "key": "end_date",
+                  "value": "2026-09-30"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "5. Doctors Performance & Revenues (تقرير الأطباء وكشوفاتهم وخدماتهم)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/reports/doctors?start_date=2026-09-01&end_date=2026-09-30",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "reports",
+                "doctors"
+              ],
+              "query": [
+                {
+                  "key": "start_date",
+                  "value": "2026-09-01"
+                },
+                {
+                  "key": "end_date",
+                  "value": "2026-09-30"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "6. Devices Usage & Consumables Profitability (تقرير الأجهزة والمستهلكات والأرباح)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/reports/devices?start_date=2026-09-01&end_date=2026-09-30",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "reports",
+                "devices"
+              ],
+              "query": [
+                {
+                  "key": "start_date",
+                  "value": "2026-09-01"
+                },
+                {
+                  "key": "end_date",
+                  "value": "2026-09-30"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "7. Expenses & Salaries Report (تقرير المصروفات والرواتب المنصرفة)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/reports/expenses-salaries?start_date=2026-09-01&end_date=2026-09-30",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "reports",
+                "expenses-salaries"
+              ],
+              "query": [
+                {
+                  "key": "start_date",
+                  "value": "2026-09-01"
+                },
+                {
+                  "key": "end_date",
+                  "value": "2026-09-30"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "8. Detailed Transactions Ledger (سجل الحركات المالية والتدفقات)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/reports/transactions-ledger?start_date=2026-09-01&end_date=2026-09-30",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "reports",
+                "transactions-ledger"
+              ],
+              "query": [
+                {
+                  "key": "start_date",
+                  "value": "2026-09-01"
+                },
+                {
+                  "key": "end_date",
+                  "value": "2026-09-30"
+                }
               ]
             }
           },

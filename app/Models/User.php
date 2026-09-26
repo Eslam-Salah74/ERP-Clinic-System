@@ -43,6 +43,11 @@ class User extends Authenticatable implements JWTSubject
         return $this->belongsTo(Role::class, 'role_id');
     }
 
+    public function department()
+    {
+        return $this->belongsTo(\Modules\Setup\Models\Department::class, 'department_id');
+    }
+
     // علاقة المستخدم بالشفت الحالي المفتوح
     public function shift()
     {

@@ -29,6 +29,11 @@ class InvoiceItem extends Model
         return $this->belongsTo(Service::class);
     }
 
+    public function product()
+    {
+        return $this->belongsTo(Item::class, 'product_id');
+    }
+
     public function getServiceItemsAttribute()
     {
         $ids = $this->service_items_ids;

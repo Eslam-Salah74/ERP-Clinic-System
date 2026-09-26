@@ -21,6 +21,11 @@ class Department extends Model
         return $this->hasMany(Service::class, 'department_id');
     }
 
+    public function doctors()
+    {
+        return $this->hasMany(\App\Models\User::class, 'department_id');
+    }
+
     public function scopeFilter($query, DepartmentFilter $filter)
     {
         return $filter->apply($query);
