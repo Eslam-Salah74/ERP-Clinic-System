@@ -45,8 +45,11 @@ class ContractService
                 foreach ($serviceCommissions as $comm) {
                     $contract->serviceCommissions()->create([
                         'service_id' => $comm['service_id'],
+                        'doctor_service_price' => $comm['doctor_service_price'] ?? 0,
+                        'is_laser' => (bool) ($comm['is_laser'] ?? false),
                         'commission_type' => $comm['commission_type'],
                         'commission_value' => $comm['commission_value'],
+                        'target_commission_value' => isset($comm['target_commission_value']) && $comm['target_commission_value'] !== null ? $comm['target_commission_value'] : null,
                     ]);
                 }
             }
@@ -95,8 +98,11 @@ class ContractService
                 foreach ($serviceCommissions as $comm) {
                     $contract->serviceCommissions()->create([
                         'service_id' => $comm['service_id'],
+                        'doctor_service_price' => $comm['doctor_service_price'] ?? 0,
+                        'is_laser' => (bool) ($comm['is_laser'] ?? false),
                         'commission_type' => $comm['commission_type'],
                         'commission_value' => $comm['commission_value'],
+                        'target_commission_value' => isset($comm['target_commission_value']) && $comm['target_commission_value'] !== null ? $comm['target_commission_value'] : null,
                     ]);
                 }
             }

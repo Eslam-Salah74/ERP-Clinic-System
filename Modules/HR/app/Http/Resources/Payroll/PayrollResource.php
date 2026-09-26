@@ -84,6 +84,18 @@ class PayrollResource extends JsonResource
             // تفاصيل البنود
             'items' => PayrollItemResource::collection($this->whenLoaded('items')),
 
+            // تقرير الخدمات غير المدرجة بالعقد المنفذة بواسطة الطبيب
+            'uncontracted_services' => $this->whenLoaded('items', function () {
+                return $this->items->where('type', 'uncontracted_service')->map(function ($item) {
+                    return [
+                        'id' => $item->id,
+                        'description' => $item->description,
+                        'reference_id' => $item->reference_id,
+                        'metadata' => $item->metadata,
+                    ];
+                })->values();
+            }),
+
             'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at?->format('Y-m-d H:i:s'),
         ];

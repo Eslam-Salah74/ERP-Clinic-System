@@ -56,8 +56,11 @@ class StoreStaffContractRequest extends FormRequest
 
             'service_commissions' => ['nullable', 'array'],
             'service_commissions.*.service_id' => ['required_with:service_commissions', 'exists:services,id'],
+            'service_commissions.*.doctor_service_price' => ['nullable', 'numeric', 'min:0'],
+            'service_commissions.*.is_laser' => ['nullable', 'boolean'],
             'service_commissions.*.commission_type' => ['required_with:service_commissions', Rule::enum(CommissionTypeEnum::class)],
             'service_commissions.*.commission_value' => ['required_with:service_commissions', 'numeric', 'min:0'],
+            'service_commissions.*.target_commission_value' => ['nullable', 'numeric', 'min:0'],
         ];
     }
 }

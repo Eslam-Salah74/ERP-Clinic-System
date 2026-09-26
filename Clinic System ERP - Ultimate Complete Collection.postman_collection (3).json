@@ -2912,7 +2912,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n    \"user_id\": 8,\n    \"title\": \"عقد أخصائي جلدية وتجميل وليزر\",\n    \"contract_type\": \"doctor\",\n    \"is_active\": true,\n    \"hourly_rate\": 40.00,\n    \"laser_service_commission_percentage\": 10.00,\n    \"other_service_commission_percentage\": 15.00,\n    \"has_target\": true,\n    \"target_amount\": 7500.00,\n    \"target_type\": \"doctor_income\",\n    \"target_achieved_hourly_rate\": 100.00,\n    \"target_achieved_laser_percentage\": 15.00,\n    \"target_achieved_other_percentage\": 20.00,\n    \"target_bonus\": 500.00,\n    \"notes\": \"40 ج/ساعة + 10% ليزر + 15% خدمات. عند تحقيق تارجت 7500 ج يرتفع لساعة 100 ج و15% ليزر و20% خدمات وبونص 500 ج مع تفعيل achieved_target=true\"\n}",
+                  "raw": "{\n    \"user_id\": 8,\n    \"title\": \"عقد أخصائي جلدية وتجميل وليزر\",\n    \"contract_type\": \"doctor\",\n    \"is_active\": true,\n    \"hourly_rate\": 40.00,\n    \"has_target\": true,\n    \"target_amount\": 7500.00,\n    \"target_type\": \"doctor_income\",\n    \"target_achieved_hourly_rate\": 100.00,\n    \"target_achieved_laser_percentage\": 15.00,\n    \"target_achieved_other_percentage\": 20.00,\n    \"target_bonus\": 500.00,\n    \"service_commissions\": [\n        {\n            \"service_id\": 2,\n            \"doctor_service_price\": 200.00,\n            \"is_laser\": true,\n            \"commission_type\": \"percentage\",\n            \"commission_value\": 10.00\n        },\n        {\n            \"service_id\": 3,\n            \"doctor_service_price\": 100.00,\n            \"is_laser\": false,\n            \"commission_type\": \"percentage\",\n            \"commission_value\": 10.00\n        },\n        {\n            \"service_id\": 1,\n            \"doctor_service_price\": 50.00,\n            \"is_laser\": false,\n            \"commission_type\": \"percentage\",\n            \"commission_value\": 10.00\n        }\n    ],\n    \"notes\": \"40 ج/ساعة + خدمات بسعر محاسبة معتمد (فركشنال 200 ج ليزر 10%، ديرما بن 100 ج 10%، كشف 50 ج 10%). عند كسر تارجت 7500 ج ترتفع خدمات الليزر لـ 15% وباقي الخدمات لـ 20% وسعر الساعة لـ 100 ج وبونص 500 ج\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -2986,7 +2986,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n    \"hourly_rate\": 50.00,\n    \"laser_service_commission_percentage\": 12.00,\n    \"target_amount\": 8000.00,\n    \"notes\": \"تحديث شروط العقد وسعر الساعة\"\n}",
+                  "raw": "{\n    \"hourly_rate\": 50.00,\n    \"has_target\": true,\n    \"target_amount\": 8000.00,\n    \"target_achieved_hourly_rate\": 120.00,\n    \"target_achieved_laser_percentage\": 18.00,\n    \"target_achieved_other_percentage\": 22.00,\n    \"service_commissions\": [\n        {\n            \"service_id\": 2,\n            \"doctor_service_price\": 220.00,\n            \"is_laser\": true,\n            \"commission_type\": \"percentage\",\n            \"commission_value\": 12.00\n        },\n        {\n            \"service_id\": 1,\n            \"doctor_service_price\": 60.00,\n            \"is_laser\": false,\n            \"commission_type\": \"percentage\",\n            \"commission_value\": 10.00\n        }\n    ],\n    \"notes\": \"تحديث شروط العقد وسعر الساعة ونسب التارجت والخدمات\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
