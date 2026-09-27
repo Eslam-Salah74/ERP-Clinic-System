@@ -8,6 +8,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\Reception\Http\Resources\Appointment\AppointmentResource;
 use Modules\Reception\Http\Resources\FollowUp\FollowUpResource;
 use Modules\Reception\Http\Resources\Invoice\InvoiceResource;
+use Modules\Reception\Http\Resources\PatientPackage\PatientPackageResource;
 
 class PatientResource extends JsonResource
 {
@@ -41,6 +42,9 @@ class PatientResource extends JsonResource
                     'follow_ups_count' => $this->relationLoaded('followUps')
                         ? $this->followUps->count()
                         : (int) ($this->follow_ups_count ?? $this->followUps()->count()),
+                    'packages_count' => $this->relationLoaded('packages')
+                        ? $this->packages->count()
+                        : (int) ($this->packages_count ?? $this->packages()->count()),
                 ];
             }),
 
@@ -63,6 +67,9 @@ class PatientResource extends JsonResource
 
             // 5. سجل المتابعات
             'follow_ups' => FollowUpResource::collection($this->whenLoaded('followUps')),
+
+            // 6. سجل الباقات والعروض المشترك بها
+            'packages' => PatientPackageResource::collection($this->whenLoaded('packages')),
 
             'created_at' => $this->created_at?->toIso8601String(),
         ];

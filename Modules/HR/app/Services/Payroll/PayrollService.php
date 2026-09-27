@@ -640,51 +640,132 @@ class PayrollService
             $itemsToCreate = array_merge($itemsToCreate, $serviceCommissionItems);
 
             // 5. عمولات التمريض (جلسات الأجهزة + مبيعات الأدوية والمستلزمات)
-            $deviceSessionsCount = 0;
-            $deviceCommissionsAmount = 0;
-            $productSalesTotal = 0;
-            $productCommissionsAmount = 0;
+            // $deviceSessionsCount = 0;
+            // $deviceCommissionsAmount = 0;
+            // $productSalesTotal = 0;
+            // $productCommissionsAmount = 0;
 
-            if ($contract && ($contract->contract_type === ContractTypeEnum::NURSE || (float) $contract->device_session_commission > 0 || (float) $contract->medication_sales_percentage > 0)) {
-                $nurseInvoices = Invoice::with(['items.service'])
-                    ->where('nurse_id', $userId)
-                    ->whereBetween('created_at', [$startDate, $endDate])
-                    ->where('status', '!=', InvoiceStatusEnum::CANCELLED->value)
-                    ->get();
+            // if ($contract && ($contract->contract_type === ContractTypeEnum::NURSE || (float) $contract->device_session_commission > 0 || (float) $contract->medication_sales_percentage > 0)) {
+            //     $nurseInvoices = Invoice::with(['items.service'])
+            //         ->where('nurse_id', $userId)
+            //         ->whereBetween('created_at', [$startDate, $endDate])
+            //         ->where('status', '!=', InvoiceStatusEnum::CANCELLED->value)
+            //         ->get();
 
-                $deviceRate = (float) $contract->device_session_commission;
-                $medicationPct = (float) $contract->medication_sales_percentage;
+            //     $deviceRate = (float) $contract->device_session_commission;
+            //     $medicationPct = (float) $contract->medication_sales_percentage;
 
-                foreach ($nurseInvoices as $inv) {
-                    foreach ($inv->items as $item) {
-                        if ($item->item_type === 'service' && $item->service && $item->service->type === ServiceTypeEnum::DEVICE) {
-                            $deviceSessionsCount += (int) $item->quantity;
-                        } elseif ($item->item_type === 'product') {
-                            $productSalesTotal += (float) $item->total_price;
-                        }
-                    }
-                }
+            //     foreach ($nurseInvoices as $inv) {
+            //         foreach ($inv->items as $item) {
+            //             if ($item->item_type === 'service' && $item->service && $item->service->type === ServiceTypeEnum::DEVICE) {
+            //                 $deviceSessionsCount += (int) $item->quantity;
+            //             } elseif ($item->item_type === 'product') {
+            //                 $productSalesTotal += (float) $item->total_price;
+            //             }
+            //         }
+            //     }
 
-                if ($deviceSessionsCount > 0 && $deviceRate > 0) {
-                    $deviceCommissionsAmount = round($deviceSessionsCount * $deviceRate, 2);
-                    $itemsToCreate[] = [
-                        'type' => 'device_commission',
-                        'description' => "عمولة جلسات أجهزة تمريض ({$deviceSessionsCount} جلسة × {$deviceRate} ج)",
-                        'amount' => $deviceCommissionsAmount,
-                        'is_addition' => true,
-                    ];
-                }
+            //     if ($deviceSessionsCount > 0 && $deviceRate > 0) {
+            //         $deviceCommissionsAmount = round($deviceSessionsCount * $deviceRate, 2);
+            //         $itemsToCreate[] = [
+            //             'type' => 'device_commission',
+            //             'description' => "عمولة جلسات أجهزة تمريض ({$deviceSessionsCount} جلسة × {$deviceRate} ج)",
+            //             'amount' => $deviceCommissionsAmount,
+            //             'is_addition' => true,
+            //         ];
+            //     }
 
-                if ($productSalesTotal > 0 && $medicationPct > 0) {
-                    $productCommissionsAmount = round($productSalesTotal * ($medicationPct / 100), 2);
-                    $itemsToCreate[] = [
-                        'type' => 'product_commission',
-                        'description' => "عمولة مبيعات أدوية ومستلزمات ({$medicationPct}% من مبيعات {$productSalesTotal} ج)",
-                        'amount' => $productCommissionsAmount,
-                        'is_addition' => true,
-                    ];
+            //     if ($productSalesTotal > 0 && $medicationPct > 0) {
+            //         $productCommissionsAmount = round($productSalesTotal * ($medicationPct / 100), 2);
+            //         $itemsToCreate[] = [
+            //             'type' => 'product_commission',
+            //             'description' => "عمولة مبيعات أدوية ومستلزمات ({$medicationPct}% من مبيعات {$productSalesTotal} ج)",
+            //             'amount' => $productCommissionsAmount,
+            //             'is_addition' => true,
+            //         ];
+            //     }
+            // }
+
+            // 5. عمولات التمريض (جلسات الأجهزة + مبيعات الأدوية والمستلزمات)
+$deviceSessionsCount = 0;
+$deviceCommissionsAmount = 0;
+$productCommissionsAmount = 0;
+
+if ($contract && ($contract->contract_type === ContractTypeEnum::NURSE || (float) $contract->device_session_commission > 0 || (float) $contract->medication_commission_value > 0)) {
+
+    // --- أولاً: جلسات الأجهزة (تعتمد حصراً على الفواتير المحددة لهذا الممرض) ---
+    $deviceRate = (float) $contract->device_session_commission;
+
+    if ($deviceRate > 0) {
+        $nurseDeviceInvoices = Invoice::with(['items.service'])
+            ->where('nurse_id', $userId)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->where('status', '!=', InvoiceStatusEnum::CANCELLED->value)
+            ->get();
+
+        foreach ($nurseDeviceInvoices as $inv) {
+            foreach ($inv->items as $item) {
+                if ($item->item_type === 'service' && $item->service && $item->service->type === ServiceTypeEnum::DEVICE) {
+                    $deviceSessionsCount += (int) $item->quantity;
                 }
             }
+        }
+
+        if ($deviceSessionsCount > 0) {
+            $deviceCommissionsAmount = round($deviceSessionsCount * $deviceRate, 2);
+            $itemsToCreate[] = [
+                'type' => 'device_commission',
+                'description' => "عمولة جلسات أجهزة تمريض ({$deviceSessionsCount} جلسة × {$deviceRate} ج)",
+                'amount' => $deviceCommissionsAmount,
+                'is_addition' => true,
+            ];
+        }
+    }
+
+    // --- ثانياً: عمولة المنتجات والأدوية (تُحسب تلقائياً من إجمالي مبيعات المركز بدون شرط nurse_id) ---
+    $commType = $contract->medication_commission_type ?? 'percentage'; // 'percentage' أو 'fixed'
+    $commValue = (float) ($contract->medication_commission_value ?? $contract->medication_sales_percentage);
+
+    if ($commValue > 0) {
+        // جلب جميع مبيعات المنتجات في المركز خلال الفترة
+        $productInvoices = Invoice::with('items')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->where('status', '!=', InvoiceStatusEnum::CANCELLED->value)
+            ->get();
+
+        $productSalesTotal = 0;
+        $productItemsCount = 0;
+
+        foreach ($productInvoices as $inv) {
+            foreach ($inv->items as $item) {
+                if ($item->item_type === 'product') {
+                    $productSalesTotal += (float) $item->total_price;
+                    $productItemsCount += (int) $item->quantity;
+                }
+            }
+        }
+
+        if ($commType === 'percentage' && $productSalesTotal > 0) {
+            // خيار النسبة المئوية: نسبة من إجمالي المبيعات
+            $productCommissionsAmount = round($productSalesTotal * ($commValue / 100), 2);
+            $itemsToCreate[] = [
+                'type' => 'product_commission',
+                'description' => "عمولة مبيعات أدوية ومستلزمات ({$commValue}% من مبيعات {$productSalesTotal} ج)",
+                'amount' => $productCommissionsAmount,
+                'is_addition' => true,
+            ];
+        } elseif ($commType === 'fixed' && $productItemsCount > 0) {
+            // خيار القيمة الثابتة: مبلغ ثابت لكل قطعة/منتج مباع
+            $productCommissionsAmount = round($productItemsCount * $commValue, 2);
+            $itemsToCreate[] = [
+                'type' => 'product_commission',
+                'description' => "عمولة مبيعات أدوية ومستلزمات ({$productItemsCount} صنف × {$commValue} ج)",
+                'amount' => $productCommissionsAmount,
+                'is_addition' => true,
+            ];
+        }
+    }
+}
 
             // 6. عمولات الاستقبال والإدارة من نسب الأقسام
             $departmentCommissionsAmount = 0;

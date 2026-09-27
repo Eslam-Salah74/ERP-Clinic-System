@@ -20,10 +20,11 @@ class PatientService
             $withRelations['appointments'] = fn($q) => $q->with(['doctor', 'service.items', 'shift'])->latest('appointment_date');
             $withRelations['invoices'] = fn($q) => $q->with(['doctor', 'items.service.items', 'shift', 'creator'])->latest();
             $withRelations['followUps'] = fn($q) => $q->with(['doctor', 'appointment', 'shift'])->latest('follow_up_date');
+            $withRelations['packages'] = fn($q) => $q->with(['package.department', 'balances.service', 'balances.product'])->latest();
         }
 
         $query = Patient::with($withRelations)
-            ->withCount(['appointments', 'invoices', 'followUps'])
+            ->withCount(['appointments', 'invoices', 'followUps', 'packages'])
             ->filter($filter)
             ->latest();
 
@@ -41,7 +42,7 @@ class PatientService
         $validated['created_by'] = Auth::id();
 
         $data = Patient::create($validated);
-        return API::newInstance()->isCreated('Created successfully')->setData(new PatientResource($data->load(['creator', 'appointments', 'invoices', 'followUps'])))->build();
+        return API::newInstance()->isCreated('Created successfully')->setData(new PatientResource($data->load(['creator', 'appointments', 'invoices', 'followUps', 'packages'])))->build();
     }
 
     public function show($id)
@@ -51,8 +52,9 @@ class PatientService
             'appointments' => fn($q) => $q->with(['doctor', 'service.items', 'shift'])->latest('appointment_date'),
             'invoices' => fn($q) => $q->with(['doctor', 'items.service.items', 'shift', 'creator'])->latest(),
             'followUps' => fn($q) => $q->with(['doctor', 'appointment', 'shift'])->latest('follow_up_date'),
+            'packages' => fn($q) => $q->with(['package.department', 'balances.service', 'balances.product', 'creator'])->latest(),
         ])
-        ->withCount(['appointments', 'invoices', 'followUps'])
+        ->withCount(['appointments', 'invoices', 'followUps', 'packages'])
         ->find($id);
 
         if (!$record) {
@@ -65,7 +67,7 @@ class PatientService
     {
         $record = Patient::findOrFail($id);
         $record->update($request->validated());
-        return API::newInstance()->isOk('Updated successfully')->setData(new PatientResource($record->load(['creator', 'appointments', 'invoices', 'followUps'])))->build();
+        return API::newInstance()->isOk('Updated successfully')->setData(new PatientResource($record->load(['creator', 'appointments', 'invoices', 'followUps', 'packages'])))->build();
     }
 
     public function destroy($id)
@@ -76,7 +78,7 @@ class PatientService
     }
 
     /**
-     * ملف المريض الشامل (كل ما يخص المريض: خدمات، منتجات، فواتير، مدفوع، متبقي، مواعيد، متابعات)
+     * ملف المريض الشامل (كل ما يخص المريض: خدمات، منتجات، باقات وعروض، فواتير، مدفوع، متبقي، مواعيد، متابعات)
      */
     public function profile($id)
     {
@@ -87,11 +89,25 @@ class PatientService
                 'doctor',
                 'items.service.department',
                 'items.product',
+                'items.package.department',
+                'items.patientPackage.package',
+                'items.patientPackageBalance.service',
+                'items.patientPackageBalance.product',
                 'transactions.creator',
                 'creator',
                 'shift'
             ])->latest(),
             'followUps' => fn($q) => $q->with(['doctor', 'appointment', 'creator', 'shift'])->latest('follow_up_date'),
+            'packages' => fn($q) => $q->with([
+                'package.department',
+                'invoice',
+                'creator',
+                'balances.service.department',
+                'balances.product',
+                'consumptions.doctor',
+                'consumptions.nurse',
+                'consumptions.invoice',
+            ])->latest(),
         ])->find($id);
 
         if (!$patient) {
