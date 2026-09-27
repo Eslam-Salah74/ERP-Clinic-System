@@ -20,6 +20,7 @@ class StaffContract extends Model
     protected $casts = [
         'contract_type' => ContractTypeEnum::class,
         'default_service_commission_type' => CommissionTypeEnum::class,
+        'medication_commission_type' => CommissionTypeEnum::class,
         'target_type' => TargetTypeEnum::class,
         'start_date' => 'date',
         'end_date' => 'date',
@@ -33,6 +34,7 @@ class StaffContract extends Model
         'late_deduction_rate_per_hour' => 'decimal:2',
         'holiday_day_rate' => 'decimal:2',
         'device_session_commission' => 'decimal:2',
+        'medication_commission_value' => 'decimal:2',
         'medication_sales_percentage' => 'decimal:2',
         'default_service_commission_value' => 'decimal:2',
         'laser_service_commission_percentage' => 'decimal:2',

@@ -37,6 +37,8 @@ class StoreStaffContractRequest extends FormRequest
             'department_commissions.*.percentage' => ['required_with:department_commissions', 'numeric', 'min:0'],
 
             'device_session_commission' => ['nullable', 'numeric', 'min:0'],
+            'medication_commission_type' => ['nullable', Rule::enum(CommissionTypeEnum::class)],
+            'medication_commission_value' => ['nullable', 'numeric', 'min:0'],
             'medication_sales_percentage' => ['nullable', 'numeric', 'min:0'],
 
             'default_service_commission_type' => ['nullable', Rule::enum(CommissionTypeEnum::class)],

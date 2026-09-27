@@ -42,7 +42,11 @@ class StaffContractResource extends JsonResource
 
             // عمولات التمريض
             'device_session_commission' => (float) $this->device_session_commission,
-            'medication_sales_percentage' => (float) $this->medication_sales_percentage,
+            'medication_commission_type' => $this->medication_commission_type instanceof \BackedEnum
+                ? $this->medication_commission_type->value
+                : ($this->medication_commission_type ?? 'percentage'),
+            'medication_commission_value' => (float) ($this->medication_commission_value ?? $this->medication_sales_percentage),
+            'medication_sales_percentage' => (float) ($this->medication_sales_percentage ?? $this->medication_commission_value),
 
             // عمولات الدكاترة
             'default_service_commission_type' => $this->default_service_commission_type,

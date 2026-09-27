@@ -691,7 +691,7 @@ class PayrollService
             $deviceCommissionsAmount = 0;
             $productCommissionsAmount = 0;
 
-            if ($contract && ($contract->contract_type === ContractTypeEnum::NURSE || (float) $contract->device_session_commission > 0 || (float) $contract->medication_commission_value > 0)) {
+            if ($contract && ($contract->contract_type === ContractTypeEnum::NURSE || (float) $contract->device_session_commission > 0 || (float) ($contract->medication_commission_value ?? $contract->medication_sales_percentage) > 0)) {
 
                 // --- أولاً: جلسات الأجهزة (تعتمد حصراً على الفواتير المحددة لهذا الممرض) ---
                 $deviceRate = (float) $contract->device_session_commission;
@@ -723,7 +723,8 @@ class PayrollService
                 }
 
                 // --- ثانياً: عمولة المنتجات والأدوية (تُحسب تلقائياً من إجمالي مبيعات المركز بدون شرط nurse_id) ---
-                $commType = $contract->medication_commission_type ?? 'percentage'; // 'percentage' أو 'fixed'
+                $rawCommType = $contract->medication_commission_type;
+                $commType = $rawCommType instanceof \BackedEnum ? $rawCommType->value : (string) ($rawCommType ?? 'percentage');
                 $commValue = (float) ($contract->medication_commission_value ?? $contract->medication_sales_percentage);
 
                 if ($commValue > 0) {
