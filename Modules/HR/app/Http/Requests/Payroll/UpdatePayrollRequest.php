@@ -14,6 +14,7 @@ class UpdatePayrollRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'total_working_hours' => ['nullable', 'numeric', 'min:0'],
             'other_allowances' => ['nullable', 'numeric', 'min:0'],
             'deductions' => ['nullable', 'numeric', 'min:0'],
             'notes' => ['nullable', 'string'],

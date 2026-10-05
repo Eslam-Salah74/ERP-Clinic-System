@@ -24,6 +24,8 @@ use Modules\Reception\Models\InvoiceItem;
 use Modules\Reception\Models\Shift;
 use Modules\Setup\Enums\ServiceTypeEnum;
 use Modules\Setup\Models\Department;
+use Modules\Setup\Models\Service;
+use Modules\HR\Models\ContractServiceCommission;
 
 class PayrollService
 {
@@ -223,7 +225,16 @@ class PayrollService
                 }
             }
 
-            $hourlyRate = (float) ($contract?->hourly_rate ?? 0);
+            // إمكانية تمرير ساعات العمل يدوياً (مفيد للدكاترة والموظفين بالساعة بدون شفتات مسجلة)
+            $manualHours = $extra['total_working_hours'] ?? $extra['working_hours'] ?? null;
+            if ($manualHours !== null && is_numeric($manualHours)) {
+                $totalWorkingHours = (float) $manualHours;
+            }
+
+            $hourlyRate = (isset($extra['hourly_rate']) && is_numeric($extra['hourly_rate']))
+                ? (float) $extra['hourly_rate']
+                : (float) ($contract?->hourly_rate ?? 0);
+
             $hourlyPay = round($totalWorkingHours * $hourlyRate, 2);
 
             $overtimeHourRate = (float) ($contract?->overtime_hour_rate ?? 0);
@@ -374,8 +385,7 @@ class PayrollService
 
                                 if ($elevatedPct > 0) {
                                     $itemComm = $itemBaseTotal * ($elevatedPct / 100);
-                                    $typeLabel = $isLaser ? 'ليزر ' : '';
-                                    $calcDescription = "نسبة تارجت دائم ({$typeLabel}{$elevatedPct}%) لخدمة {$service->name} على سعر الأساس ({$doctorBasePrice} ج)";
+                                    $calcDescription = "نسبة تارجت دائم ({$elevatedPct}%) لخدمة {$service->name} على سعر الأساس ({$doctorBasePrice} ج)";
                                 } else {
                                     $itemComm = $itemBaseTotal * ($basePct / 100);
                                     $calcDescription = "نسبة أساسية ({$basePct}%) لخدمة {$service->name} على سعر الأساس ({$doctorBasePrice} ج)";
@@ -503,7 +513,7 @@ class PayrollService
 
                         foreach ($sortedInvoices as $inv) {
                             foreach ($inv->items as $item) {
-                                if ($item->item_type === 'service' && $item->service) {
+                                if (in_array($item->item_type, ['service', 'package_consumption']) && $item->service) {
                                     $service = $item->service;
                                     $quantity = (int) $item->quantity;
                                     $specificComm = $contract->serviceCommissions?->firstWhere('service_id', $service->id);
@@ -553,8 +563,7 @@ class PayrollService
                                             if ($prevBenchmark >= $targetThreshold) {
                                                 // البند تم بالكامل بعد كسر التارجت
                                                 $itemComm = $itemBaseTotal * ($elevatedPct / 100);
-                                                $typeLabel = $isLaser ? 'ليزر ' : '';
-                                                $calcDescription = "نسبة ترقية بعد التارجت ({$typeLabel}{$elevatedPct}%) لخدمة {$service->name} على سعر الأساس ({$doctorBasePrice} ج)";
+                                                $calcDescription = "نسبة ترقية بعد التارجت ({$elevatedPct}%) لخدمة {$service->name} على سعر الأساس ({$doctorBasePrice} ج)";
                                             } elseif ($accumulatedBenchmark > $targetThreshold) {
                                                 // الفاتورة التي كُسر فيها التارجت (مجزأة)
                                                 $itemPrice = max(0.01, (float) $item->total_price);
@@ -579,8 +588,7 @@ class PayrollService
 
                                             if ($prevBenchmark >= $targetThreshold) {
                                                 $itemComm = $itemBaseTotal * ($elevatedPct / 100);
-                                                $typeLabel = $isLaser ? 'ليزر ' : '';
-                                                $calcDescription = "نسبة ترقية بعد التارجت ({$typeLabel}{$elevatedPct}%) لخدمة {$service->name} على سعر الأساس ({$doctorBasePrice} ج)";
+                                                $calcDescription = "نسبة ترقية بعد التارجت ({$elevatedPct}%) لخدمة {$service->name} على سعر الأساس ({$doctorBasePrice} ج)";
                                             } elseif ($accumulatedBenchmark > $targetThreshold) {
                                                 $denom = max(0.01, $itemBaseComm);
                                                 $beforeRatio = min(1, max(0, ($targetThreshold - $prevBenchmark) / $denom));
@@ -689,15 +697,26 @@ class PayrollService
             // 5. عمولات التمريض (جلسات الأجهزة + مبيعات الأدوية والمستلزمات)
             $deviceSessionsCount = 0;
             $deviceCommissionsAmount = 0;
+            $productSalesTotal = 0;
             $productCommissionsAmount = 0;
 
-            if ($contract && ($contract->contract_type === ContractTypeEnum::NURSE || (float) $contract->device_session_commission > 0 || (float) ($contract->medication_commission_value ?? $contract->medication_sales_percentage) > 0)) {
+            $rawCommType = $contract?->medication_commission_type;
+            $commType = $rawCommType instanceof \BackedEnum ? $rawCommType->value : (string) ($rawCommType ?? CommissionTypeEnum::PERCENTAGE->value);
+            $isMedPercentage = $commType === CommissionTypeEnum::PERCENTAGE->value;
+
+            $commValue = $isMedPercentage
+                ? (float) ((float) $contract?->medication_commission_value > 0 ? $contract?->medication_commission_value : ($contract?->medication_sales_percentage ?? 0))
+                : (float) ($contract?->medication_commission_value ?? 0);
+
+            $hasMedicationComm = $commValue > 0;
+
+            if ($contract && ($contract->contract_type === ContractTypeEnum::NURSE || (float) $contract->device_session_commission > 0 || $hasMedicationComm)) {
 
                 // --- أولاً: جلسات الأجهزة (تعتمد حصراً على الفواتير المحددة لهذا الممرض) ---
                 $deviceRate = (float) $contract->device_session_commission;
 
                 if ($deviceRate > 0) {
-                    $nurseDeviceInvoices = Invoice::with(['items.service'])
+                    $nurseDeviceInvoices = Invoice::with(['items.service', 'doctor.activeContract.serviceCommissions'])
                         ->where('nurse_id', $userId)
                         ->whereBetween('created_at', [$startDate, $endDate])
                         ->where('status', '!=', InvoiceStatusEnum::CANCELLED->value)
@@ -705,8 +724,39 @@ class PayrollService
 
                     foreach ($nurseDeviceInvoices as $inv) {
                         foreach ($inv->items as $item) {
-                            if ($item->item_type === 'service' && $item->service && $item->service->type === ServiceTypeEnum::DEVICE) {
-                                $deviceSessionsCount += (int) $item->quantity;
+                            if (in_array($item->item_type, ['service', 'package_consumption'])) {
+                                $service = $item->service;
+                                if (!$service && $item->service_id) {
+                                    $service = Service::find($item->service_id);
+                                }
+
+                                if (!$service) {
+                                    continue;
+                                }
+
+                                // تحديد هل الخدمة جلسة أجهزة أو ليزر:
+                                // 1. نوع الخدمة الأساسي في جدول الخدمات هو جهاز (device)
+                                $isDeviceOrLaser = ($service->type === ServiceTypeEnum::DEVICE);
+
+                                // 2. أو معلّمة كجلسة ليزر في عقد الطبيب المنفّذ للجلسة
+                                if (!$isDeviceOrLaser && $inv->doctor && $inv->doctor->activeContract) {
+                                    $docCommission = $inv->doctor->activeContract->serviceCommissions
+                                        ->firstWhere('service_id', $service->id);
+                                    if ($docCommission && (bool) $docCommission->is_laser) {
+                                        $isDeviceOrLaser = true;
+                                    }
+                                }
+
+                                // 3. أو معلّمة كجلسة ليزر في بنود عمولات أي عقد معتمد في النظام
+                                if (!$isDeviceOrLaser) {
+                                    $isDeviceOrLaser = ContractServiceCommission::where('service_id', $service->id)
+                                        ->where('is_laser', true)
+                                        ->exists();
+                                }
+
+                                if ($isDeviceOrLaser) {
+                                    $deviceSessionsCount += (int) $item->quantity;
+                                }
                             }
                         }
                     }
@@ -723,10 +773,6 @@ class PayrollService
                 }
 
                 // --- ثانياً: عمولة المنتجات والأدوية (تُحسب تلقائياً من إجمالي مبيعات المركز بدون شرط nurse_id) ---
-                $rawCommType = $contract->medication_commission_type;
-                $commType = $rawCommType instanceof \BackedEnum ? $rawCommType->value : (string) ($rawCommType ?? 'percentage');
-                $commValue = (float) ($contract->medication_commission_value ?? $contract->medication_sales_percentage);
-
                 if ($commValue > 0) {
                     // جلب جميع مبيعات المنتجات في المركز خلال الفترة
                     $productInvoices = Invoice::with('items')
@@ -779,7 +825,10 @@ class PayrollService
                         $dept = Department::find($deptId);
                         $deptName = $dept?->name ?? "قسم رقم {$deptId}";
 
-                        $deptRevenue = (float) InvoiceItem::whereHas('service', fn($q) => $q->where('department_id', $deptId))
+                        $deptRevenue = (float) InvoiceItem::where(function ($query) use ($deptId) {
+                                $query->whereHas('service', fn($q) => $q->where('department_id', $deptId))
+                                      ->orWhereHas('package', fn($q) => $q->where('department_id', $deptId));
+                            })
                             ->whereHas('invoice', fn($q) => $q->whereBetween('created_at', [$startDate, $endDate])->where('status', '!=', InvoiceStatusEnum::CANCELLED->value))
                             ->sum('total_price');
 
@@ -926,10 +975,36 @@ class PayrollService
         $otherAllowances = isset($validated['other_allowances']) ? (float) $validated['other_allowances'] : (float) $payroll->other_allowances;
         $deductions = isset($validated['deductions']) ? (float) $validated['deductions'] : (float) $payroll->deductions;
 
+        $totalWorkingHours = isset($validated['total_working_hours']) ? (float) $validated['total_working_hours'] : (float) $payroll->total_working_hours;
+        $contract = $payroll->contract;
+        $hourlyRate = (float) ($contract?->hourly_rate ?? ($payroll->total_working_hours > 0 ? ($payroll->hourly_pay / $payroll->total_working_hours) : 0));
+        $hourlyPay = isset($validated['total_working_hours']) ? round($totalWorkingHours * $hourlyRate, 2) : (float) $payroll->hourly_pay;
+
+        if (isset($validated['total_working_hours'])) {
+            $hourlyItem = $payroll->items()->where('type', 'hourly_pay')->first();
+            if ($hourlyPay > 0) {
+                if ($hourlyItem) {
+                    $hourlyItem->update([
+                        'amount' => $hourlyPay,
+                        'description' => "أجر ساعات العمل الفعلى ({$totalWorkingHours} ساعة × {$hourlyRate} ج)",
+                    ]);
+                } else {
+                    $payroll->items()->create([
+                        'type' => 'hourly_pay',
+                        'description' => "أجر ساعات العمل الفعلى ({$totalWorkingHours} ساعة × {$hourlyRate} ج)",
+                        'amount' => $hourlyPay,
+                        'is_addition' => true,
+                    ]);
+                }
+            } elseif ($hourlyItem) {
+                $hourlyItem->delete();
+            }
+        }
+
         // إعادة حساب الإجمالي والصافي بناءً على التعديل اليدوي
         $grossSalary = round(
             $payroll->basic_salary
-            + $payroll->hourly_pay
+            + $hourlyPay
             + $payroll->overtime_amount
             + $payroll->holiday_allowance_amount
             + $payroll->service_commissions_amount
@@ -944,6 +1019,8 @@ class PayrollService
         $netSalary = max(0, round($grossSalary - $payroll->late_deduction_amount - $deductions, 2));
 
         $payroll->update([
+            'total_working_hours' => $totalWorkingHours,
+            'hourly_pay' => $hourlyPay,
             'other_allowances' => $otherAllowances,
             'deductions' => $deductions,
             'gross_salary' => $grossSalary,

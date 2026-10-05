@@ -46,6 +46,29 @@ class StaffContract extends Model
         'target_bonus' => 'decimal:2',
     ];
 
+    protected static function booted(): void
+    {
+        static::saving(function (StaffContract $contract) {
+            $type = $contract->medication_commission_type instanceof \BackedEnum
+                ? $contract->medication_commission_type->value
+                : ($contract->medication_commission_type ?? CommissionTypeEnum::PERCENTAGE->value);
+
+            if ($type === CommissionTypeEnum::FIXED->value) {
+                $contract->medication_commission_type = CommissionTypeEnum::FIXED;
+                $contract->medication_commission_value = (float) ($contract->medication_commission_value ?? 0);
+                $contract->medication_sales_percentage = 0;
+            } else {
+                $val = (float) ((float) $contract->medication_commission_value > 0
+                    ? $contract->medication_commission_value
+                    : ($contract->medication_sales_percentage ?? 0));
+
+                $contract->medication_commission_type = CommissionTypeEnum::PERCENTAGE;
+                $contract->medication_commission_value = $val;
+                $contract->medication_sales_percentage = $val;
+            }
+        });
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');

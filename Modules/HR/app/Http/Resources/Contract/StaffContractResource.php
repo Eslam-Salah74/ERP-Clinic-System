@@ -5,10 +5,26 @@ namespace Modules\HR\Http\Resources\Contract;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+use Modules\HR\Enums\CommissionTypeEnum;
+use Modules\HR\Http\Resources\Contract\ContractServiceCommissionResource;
+
 class StaffContractResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $rawMedCommType = $this->medication_commission_type;
+        $medCommType = $rawMedCommType instanceof \BackedEnum
+            ? $rawMedCommType->value
+            : ($rawMedCommType ?? CommissionTypeEnum::PERCENTAGE->value);
+        $isMedPercentage = $medCommType === CommissionTypeEnum::PERCENTAGE->value;
+
+        $medCommValue = (float) ((float) $this->medication_commission_value > 0
+            ? $this->medication_commission_value
+            : ($isMedPercentage ? ($this->medication_sales_percentage ?? 0) : 0));
+
+        $medSalesPercentage = $isMedPercentage
+            ? (float) ((float) $this->medication_sales_percentage > 0 ? $this->medication_sales_percentage : $medCommValue)
+            : 0.0;
         return [
             'id' => $this->id,
             'user_id' => $this->user_id,
@@ -42,11 +58,9 @@ class StaffContractResource extends JsonResource
 
             // عمولات التمريض
             'device_session_commission' => (float) $this->device_session_commission,
-            'medication_commission_type' => $this->medication_commission_type instanceof \BackedEnum
-                ? $this->medication_commission_type->value
-                : ($this->medication_commission_type ?? 'percentage'),
-            'medication_commission_value' => (float) ($this->medication_commission_value ?? $this->medication_sales_percentage),
-            'medication_sales_percentage' => (float) ($this->medication_sales_percentage ?? $this->medication_commission_value),
+            'medication_commission_type' => $medCommType,
+            'medication_commission_value' => $medCommValue,
+            'medication_sales_percentage' => $medSalesPercentage,
 
             // عمولات الدكاترة
             'default_service_commission_type' => $this->default_service_commission_type,

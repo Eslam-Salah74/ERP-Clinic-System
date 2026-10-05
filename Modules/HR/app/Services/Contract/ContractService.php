@@ -4,6 +4,7 @@ namespace Modules\HR\Services\Contract;
 
 use App\Support\API;
 use Illuminate\Support\Facades\DB;
+use Modules\HR\Enums\CommissionTypeEnum;
 use Modules\HR\Filters\Contract\StaffContractFilter;
 use Modules\HR\Http\Requests\Contract\StoreStaffContractRequest;
 use Modules\HR\Http\Requests\Contract\UpdateStaffContractRequest;
@@ -30,6 +31,18 @@ class ContractService
         $validated = $request->validated();
         $serviceCommissions = $validated['service_commissions'] ?? [];
         unset($validated['service_commissions']);
+
+        $commType = $validated['medication_commission_type'] ?? CommissionTypeEnum::PERCENTAGE->value;
+        if ($commType === CommissionTypeEnum::FIXED->value || $commType === CommissionTypeEnum::FIXED) {
+            $validated['medication_commission_type'] = CommissionTypeEnum::FIXED->value;
+            $validated['medication_commission_value'] = (float) ($validated['medication_commission_value'] ?? 0);
+            $validated['medication_sales_percentage'] = 0;
+        } else {
+            $val = (float) ($validated['medication_commission_value'] ?? $validated['medication_sales_percentage'] ?? 0);
+            $validated['medication_commission_type'] = CommissionTypeEnum::PERCENTAGE->value;
+            $validated['medication_commission_value'] = $val;
+            $validated['medication_sales_percentage'] = $val;
+        }
 
         $contract = DB::transaction(function () use ($validated, $serviceCommissions) {
             $isActive = $validated['is_active'] ?? true;
@@ -59,7 +72,7 @@ class ContractService
 
         return API::newInstance()
             ->isCreated('Contract created successfully')
-            ->setData(new StaffContractResource($contract->load(['user', 'serviceCommissions.service'])))
+            ->setData(new StaffContractResource($contract->refresh()->load(['user', 'serviceCommissions.service'])))
             ->build();
     }
 
@@ -83,6 +96,22 @@ class ContractService
         $hasCommissions = array_key_exists('service_commissions', $validated);
         $serviceCommissions = $validated['service_commissions'] ?? [];
         unset($validated['service_commissions']);
+
+        if (array_key_exists('medication_commission_type', $validated) || array_key_exists('medication_commission_value', $validated) || array_key_exists('medication_sales_percentage', $validated)) {
+            $rawCommType = $validated['medication_commission_type'] ?? $contract->medication_commission_type;
+            $commType = $rawCommType instanceof \BackedEnum ? $rawCommType->value : ($rawCommType ?? CommissionTypeEnum::PERCENTAGE->value);
+
+            if ($commType === CommissionTypeEnum::FIXED->value || $commType === CommissionTypeEnum::FIXED) {
+                $validated['medication_commission_type'] = CommissionTypeEnum::FIXED->value;
+                $validated['medication_commission_value'] = (float) ($validated['medication_commission_value'] ?? $contract->medication_commission_value ?? 0);
+                $validated['medication_sales_percentage'] = 0;
+            } else {
+                $val = (float) ($validated['medication_commission_value'] ?? $validated['medication_sales_percentage'] ?? $contract->medication_commission_value ?? $contract->medication_sales_percentage ?? 0);
+                $validated['medication_commission_type'] = CommissionTypeEnum::PERCENTAGE->value;
+                $validated['medication_commission_value'] = $val;
+                $validated['medication_sales_percentage'] = $val;
+            }
+        }
 
         $contract = DB::transaction(function () use ($contract, $validated, $hasCommissions, $serviceCommissions) {
             if (isset($validated['is_active']) && $validated['is_active']) {
@@ -112,7 +141,7 @@ class ContractService
 
         return API::newInstance()
             ->isOk('Contract updated successfully')
-            ->setData(new StaffContractResource($contract->load(['user', 'serviceCommissions.service'])))
+            ->setData(new StaffContractResource($contract->refresh()->load(['user', 'serviceCommissions.service'])))
             ->build();
     }
 
