@@ -106,7 +106,7 @@ class DoctorReportService
                     }
 
                     // حساب عمولة الطبيب
-                    $itemComm = $this->calculateItemCommission($item, $doc->activeContract);
+                    $itemComm = $this->calculateItemCommission($item, $doc->activeContract, (bool) ($doc->achieved_target ?? false));
                     $totalDocCommission += $itemComm;
 
                     // تجميع الخدمات المقدمة من هذا الطبيب
@@ -204,7 +204,7 @@ class DoctorReportService
     /**
      * احتساب عمولة الطبيب على بند الخدمة بناءً على العقد
      */
-    private function calculateItemCommission($item, $contract): float
+    private function calculateItemCommission($item, $contract, bool $isPermanentTarget = false): float
     {
         if (!$contract) {
             return 0.00;
@@ -215,34 +215,51 @@ class DoctorReportService
             return 0.00;
         }
 
-        // 1. عمولة محددة بالاسم في جدول contract_service_commissions
+        $quantity = (float) $item->quantity;
+        $itemTotal = (float) $item->total_price;
+
+        // 1. فحص وجود عمولة مخصصة في جدول contract_service_commissions
         $specificComm = $contract->serviceCommissions?->firstWhere('service_id', $service->id);
+
         if ($specificComm) {
+            $customPrice = (float) ($specificComm->doctor_service_price ?? 0);
+            $baseTotal = ($customPrice > 0) ? round($customPrice * $quantity, 2) : $itemTotal;
+
             if ($specificComm->commission_type === CommissionTypeEnum::FIXED) {
-                return (float) $specificComm->commission_value * (int) $item->quantity;
-            } else {
-                return (float) $item->total_price * ((float) $specificComm->commission_value / 100);
+                return round((float) $specificComm->commission_value * $quantity, 2);
             }
-        }
 
-        // 2. إذا كانت الخدمة ليزر
-        $isLaser = str_contains(mb_strtolower($service->name), 'ليزر') || str_contains(strtolower($service->name), 'laser');
-        if ($isLaser && (float) $contract->laser_service_commission_percentage > 0) {
-            return (float) $item->total_price * ((float) $contract->laser_service_commission_percentage / 100);
-        }
+            $basePct = (float) $specificComm->commission_value;
+            $isLaser = (bool) $specificComm->is_laser;
 
-        // 3. نسبة الخدمات الأخرى
-        if ((float) $contract->other_service_commission_percentage > 0) {
-            return (float) $item->total_price * ((float) $contract->other_service_commission_percentage / 100);
-        }
+            if ($isPermanentTarget && $contract->has_target) {
+                $elevatedPct = ($specificComm->target_commission_value !== null && (float) $specificComm->target_commission_value > 0)
+                    ? (float) $specificComm->target_commission_value
+                    : ($isLaser
+                        ? (float) ($contract->target_achieved_laser_percentage ?? $basePct)
+                        : (float) ($contract->target_achieved_other_percentage ?? $basePct));
 
-        // 4. القيمة الافتراضية
-        if ((float) $contract->default_service_commission_value > 0) {
-            if ($contract->default_service_commission_type === CommissionTypeEnum::FIXED) {
-                return (float) $contract->default_service_commission_value * (int) $item->quantity;
-            } else {
-                return (float) $item->total_price * ((float) $contract->default_service_commission_value / 100);
+                $appliedPct = ($elevatedPct > 0) ? $elevatedPct : $basePct;
+                return round($baseTotal * ($appliedPct / 100), 2);
             }
+
+            return round($baseTotal * ($basePct / 100), 2);
+        }
+
+        // 2. خدمة غير مدرجة بالقائمة المخصصة: تطبيق نسبة الخدمات الأخرى على إجمالي الفاتورة
+        $otherPct = (float) ($contract->other_service_commission_percentage ?? 0);
+        if ($otherPct <= 0 && (float) ($contract->default_service_commission_value ?? 0) > 0) {
+            $otherPct = (float) $contract->default_service_commission_value;
+        }
+
+        if ($otherPct > 0) {
+            if ($isPermanentTarget && $contract->has_target) {
+                $targetOtherPct = (float) ($contract->target_achieved_other_percentage ?? 0);
+                $appliedPct = ($targetOtherPct > 0) ? $targetOtherPct : $otherPct;
+                return round($itemTotal * ($appliedPct / 100), 2);
+            }
+
+            return round($itemTotal * ($otherPct / 100), 2);
         }
 
         return 0.00;

@@ -326,74 +326,114 @@ class PayrollService
                         // البحث عن الخدمة في قائمة خدمات عقد الطبيب
                         $specificComm = $contract?->serviceCommissions?->firstWhere('service_id', $service->id);
 
-                        if (!$specificComm) {
-                            // الخدمة غير مسجلة بعقد الطبيب: عمولتها 0 ج وتسجل في تقرير تنبيهي للإدارة
-                            $uncontractedServices[] = [
-                                'service_id' => $service->id,
-                                'service_name' => $service->name,
-                                'invoice_id' => $inv->id,
-                                'invoice_number' => $inv->invoice_number,
-                                'patient_name' => $inv->patient?->name,
-                                'patient_price' => (float) $item->total_price,
-                                'quantity' => $quantity,
-                                'date' => $inv->created_at?->format('Y-m-d H:i'),
-                            ];
+                        $isGeneralOtherService = false;
 
-                            $serviceCommissionItems[] = [
-                                'type' => 'uncontracted_service',
-                                'description' => "خدمة خارج العقد: {$service->name} (كمية {$quantity}) - فاتورة {$inv->invoice_number} (تستوجب مراجعة الإدارة)",
-                                'amount' => 0,
-                                'is_addition' => true,
-                                'reference_id' => $inv->id,
-                                'reference_type' => 'invoice',
-                                'metadata' => [
+                        if (!$specificComm) {
+                            $otherPct = (float) ($contract?->other_service_commission_percentage ?? 0);
+                            if ($otherPct <= 0 && (float) ($contract?->default_service_commission_value ?? 0) > 0) {
+                                $otherPct = (float) $contract->default_service_commission_value;
+                            }
+
+                            if ($otherPct <= 0) {
+                                // الخدمة غير مسجلة بعقد الطبيب والعقد لا يحتوي على نسبة عامة: عمولتها 0 ج وتسجل في تقرير تنبيهي للإدارة
+                                $uncontractedServices[] = [
                                     'service_id' => $service->id,
                                     'service_name' => $service->name,
+                                    'invoice_id' => $inv->id,
                                     'invoice_number' => $inv->invoice_number,
+                                    'patient_name' => $inv->patient?->name,
+                                    'patient_price' => (float) $item->total_price,
                                     'quantity' => $quantity,
-                                    'patient_total_price' => (float) $item->total_price,
-                                    'is_uncontracted' => true,
-                                    'note' => 'الخدمة غير مدرجة بعقد الطبيب وعمولتها 0 ج وتستوجب مراجعة الإدارة',
-                                ],
-                            ];
-                            continue;
+                                    'date' => $inv->created_at?->format('Y-m-d H:i'),
+                                ];
+
+                                $serviceCommissionItems[] = [
+                                    'type' => 'uncontracted_service',
+                                    'description' => "خدمة خارج العقد: {$service->name} (كمية {$quantity}) - فاتورة {$inv->invoice_number} (تستوجب مراجعة الإدارة)",
+                                    'amount' => 0,
+                                    'is_addition' => true,
+                                    'reference_id' => $inv->id,
+                                    'reference_type' => 'invoice',
+                                    'metadata' => [
+                                        'service_id' => $service->id,
+                                        'service_name' => $service->name,
+                                        'invoice_number' => $inv->invoice_number,
+                                        'quantity' => $quantity,
+                                        'patient_total_price' => (float) $item->total_price,
+                                        'is_uncontracted' => true,
+                                        'note' => 'الخدمة غير مدرجة بعقد الطبيب وعمولتها 0 ج وتستوجب مراجعة الإدارة',
+                                    ],
+                                ];
+                                continue;
+                            }
+
+                            $isGeneralOtherService = true;
                         }
 
-                        // الخدمة مسجلة ومعتمدة بعقد الطبيب
+                        // الخدمة إما مسجلة ومعتمدة بعقد الطبيب، أو خدمة عامة مشمولة بـ other_service_commission_percentage
                         $servicesCount += $quantity;
-                        $doctorBasePrice = (float) ($specificComm->doctor_service_price ?? 0);
-                        $itemBaseTotal = round($doctorBasePrice * $quantity, 2);
-                        $isLaser = (bool) $specificComm->is_laser;
-
                         $itemComm = 0;
                         $calcDescription = '';
 
-                        if ($specificComm->commission_type === CommissionTypeEnum::FIXED) {
-                            $val = (float) $specificComm->commission_value;
-                            $itemComm = $quantity * $val;
-                            $calcDescription = "عمولة ثابتة ({$quantity} × {$val} ج) لخدمة {$service->name}";
-                        } else {
-                            $basePct = (float) $specificComm->commission_value;
+                        if ($isGeneralOtherService) {
+                            // خدمة عامة غير مدرجة بالقائمة المخصصة: تحسب النسبة من إجمالي سعر البند بالفاتورة (item->total_price)
+                            $itemBaseTotal = (float) $item->total_price;
+                            $doctorBasePrice = $quantity > 0 ? round($itemBaseTotal / $quantity, 2) : $itemBaseTotal;
+                            $isLaser = false;
+                            $basePct = (float) ($contract?->other_service_commission_percentage ?? $contract?->default_service_commission_value ?? 0);
+                            $targetOtherPct = (float) ($contract?->target_achieved_other_percentage ?? 0);
+                            $elevatedPct = $targetOtherPct > 0 ? $targetOtherPct : $basePct;
 
-                            // إذا كان الطبيب يحمل تارجت دائم، يطبق مباشرة نسبة ما بعد التارجت من أول الشهر
-                            if ($isPermanentTargetAchieved && $contract && $contract->has_target) {
-                                $elevatedPct = ($specificComm->target_commission_value !== null && (float) $specificComm->target_commission_value > 0)
-                                    ? (float) $specificComm->target_commission_value
-                                    : ($isLaser
-                                        ? (float) ($contract->target_achieved_laser_percentage ?? $basePct)
-                                        : (float) ($contract->target_achieved_other_percentage ?? $basePct));
-
-                                if ($elevatedPct > 0) {
-                                    $itemComm = $itemBaseTotal * ($elevatedPct / 100);
-                                    $calcDescription = "نسبة تارجت دائم ({$elevatedPct}%) لخدمة {$service->name} على سعر الأساس ({$doctorBasePrice} ج)";
-                                } else {
-                                    $itemComm = $itemBaseTotal * ($basePct / 100);
-                                    $calcDescription = "نسبة أساسية ({$basePct}%) لخدمة {$service->name} على سعر الأساس ({$doctorBasePrice} ج)";
-                                }
+                            if ($isPermanentTargetAchieved && $contract && $contract->has_target && $elevatedPct > 0) {
+                                $itemComm = $itemBaseTotal * ($elevatedPct / 100);
+                                $calcDescription = "نسبة خدمات عامة تارجت دائم ({$elevatedPct}%) لخدمة {$service->name} من إجمالي الفاتورة ({$itemBaseTotal} ج)";
                             } else {
-                                // النسبة الأساسية قبل كسر التارجت
                                 $itemComm = $itemBaseTotal * ($basePct / 100);
-                                $calcDescription = "نسبة أساسية ({$basePct}%) لخدمة {$service->name} على سعر الأساس ({$doctorBasePrice} ج)";
+                                $calcDescription = "نسبة خدمات عامة ({$basePct}%) لخدمة {$service->name} من إجمالي الفاتورة ({$itemBaseTotal} ج)";
+                            }
+                        } else {
+                            // خدمة مسجلة ومعتمدة بعقد الطبيب في serviceCommissions
+                            $customPrice = (float) ($specificComm->doctor_service_price ?? 0);
+                            if ($customPrice > 0) {
+                                $doctorBasePrice = $customPrice;
+                                $itemBaseTotal = round($doctorBasePrice * $quantity, 2);
+                                $priceDesc = "على سعر الأساس ({$doctorBasePrice} ج)";
+                            } else {
+                                // إذا لم يحدد سعر أساس خاص بالخدمة في العقد، يعتمد إجمالي ما دفعه المريض في الفاتورة للبند
+                                $itemBaseTotal = (float) $item->total_price;
+                                $doctorBasePrice = $quantity > 0 ? round($itemBaseTotal / $quantity, 2) : $itemBaseTotal;
+                                $priceDesc = "من إجمالي الفاتورة ({$itemBaseTotal} ج)";
+                            }
+
+                            $isLaser = (bool) $specificComm->is_laser;
+
+                            if ($specificComm->commission_type === CommissionTypeEnum::FIXED) {
+                                $val = (float) $specificComm->commission_value;
+                                $itemComm = $quantity * $val;
+                                $calcDescription = "عمولة ثابتة ({$quantity} × {$val} ج) لخدمة {$service->name}";
+                            } else {
+                                $basePct = (float) $specificComm->commission_value;
+
+                                // إذا كان الطبيب يحمل تارجت دائم، يطبق مباشرة نسبة ما بعد التارجت من أول الشهر
+                                if ($isPermanentTargetAchieved && $contract && $contract->has_target) {
+                                    $elevatedPct = ($specificComm->target_commission_value !== null && (float) $specificComm->target_commission_value > 0)
+                                        ? (float) $specificComm->target_commission_value
+                                        : ($isLaser
+                                            ? (float) ($contract->target_achieved_laser_percentage ?? $basePct)
+                                            : (float) ($contract->target_achieved_other_percentage ?? $basePct));
+
+                                    if ($elevatedPct > 0) {
+                                        $itemComm = $itemBaseTotal * ($elevatedPct / 100);
+                                        $calcDescription = "نسبة تارجت دائم ({$elevatedPct}%) لخدمة {$service->name} {$priceDesc}";
+                                    } else {
+                                        $itemComm = $itemBaseTotal * ($basePct / 100);
+                                        $calcDescription = "نسبة أساسية ({$basePct}%) لخدمة {$service->name} {$priceDesc}";
+                                    }
+                                } else {
+                                    // النسبة الأساسية قبل كسر التارجت
+                                    $itemComm = $itemBaseTotal * ($basePct / 100);
+                                    $calcDescription = "نسبة أساسية ({$basePct}%) لخدمة {$service->name} {$priceDesc}";
+                                }
                             }
                         }
 
@@ -413,8 +453,9 @@ class PayrollService
                                     'invoice_number' => $inv->invoice_number,
                                     'quantity' => $quantity,
                                     'doctor_service_price' => $doctorBasePrice,
-                                    'commission_value' => (float) $specificComm->commission_value,
+                                    'commission_value' => (float) ($specificComm ? $specificComm->commission_value : $basePct),
                                     'is_laser' => $isLaser,
+                                    'is_general_other' => $isGeneralOtherService,
                                 ],
                             ];
                         }
@@ -515,45 +556,91 @@ class PayrollService
                             foreach ($inv->items as $item) {
                                 if (in_array($item->item_type, ['service', 'package_consumption']) && $item->service) {
                                     $service = $item->service;
-                                    $quantity = (int) $item->quantity;
+                                    $quantity = (float) $item->quantity;
                                     $specificComm = $contract->serviceCommissions?->firstWhere('service_id', $service->id);
 
-                                    // إذا كانت الخدمة غير مسجلة بعقد الطبيب تظل بعمولة 0 ج
+                                    $isGeneralOtherService = false;
+
                                     if (!$specificComm) {
-                                        $serviceCommissionItems[] = [
-                                            'type' => 'uncontracted_service',
-                                            'description' => "خدمة خارج العقد: {$service->name} (كمية {$quantity}) - فاتورة {$inv->invoice_number} (تستوجب مراجعة الإدارة)",
-                                            'amount' => 0,
-                                            'is_addition' => true,
-                                            'reference_id' => $inv->id,
-                                            'reference_type' => 'invoice',
-                                        ];
-                                        continue;
+                                        $otherPct = (float) ($contract->other_service_commission_percentage ?? 0);
+                                        if ($otherPct <= 0 && (float) ($contract->default_service_commission_value ?? 0) > 0) {
+                                            $otherPct = (float) $contract->default_service_commission_value;
+                                        }
+
+                                        if ($otherPct <= 0) {
+                                            // إذا كانت الخدمة غير مسجلة بعقد الطبيب والعقد لا يحتوي على نسبة عامة: تظل بعمولة 0 ج
+                                            $serviceCommissionItems[] = [
+                                                'type' => 'uncontracted_service',
+                                                'description' => "خدمة خارج العقد: {$service->name} (كمية {$quantity}) - فاتورة {$inv->invoice_number} (تستوجب مراجعة الإدارة)",
+                                                'amount' => 0,
+                                                'is_addition' => true,
+                                                'reference_id' => $inv->id,
+                                                'reference_type' => 'invoice',
+                                                'metadata' => [
+                                                    'service_id' => $service->id,
+                                                    'service_name' => $service->name,
+                                                    'invoice_number' => $inv->invoice_number,
+                                                    'quantity' => $quantity,
+                                                    'patient_total_price' => (float) $item->total_price,
+                                                    'is_uncontracted' => true,
+                                                    'note' => 'الخدمة غير مدرجة بعقد الطبيب وعمولتها 0 ج وتستوجب مراجعة الإدارة',
+                                                ],
+                                            ];
+                                            continue;
+                                        }
+
+                                        $isGeneralOtherService = true;
                                     }
 
-                                    $doctorBasePrice = (float) ($specificComm->doctor_service_price ?? 0);
-                                    $itemBaseTotal = round($doctorBasePrice * $quantity, 2);
-                                    $isLaser = (bool) $specificComm->is_laser;
-                                    $basePct = (float) $specificComm->commission_value;
+                                    if ($isGeneralOtherService) {
+                                        // خدمة عامة غير مدرجة بالقائمة المخصصة: تحسب النسبة من إجمالي سعر البند بالفاتورة (item->total_price)
+                                        $itemBaseTotal = (float) $item->total_price;
+                                        $doctorBasePrice = $quantity > 0 ? round($itemBaseTotal / $quantity, 2) : $itemBaseTotal;
+                                        $isLaser = false;
+                                        $priceDesc = "من إجمالي الفاتورة ({$itemBaseTotal} ج)";
+                                        $basePct = (float) ($contract->other_service_commission_percentage ?? $contract->default_service_commission_value ?? 0);
+                                        $targetOtherPct = (float) ($contract->target_achieved_other_percentage ?? 0);
+                                        $elevatedPct = $targetOtherPct > 0 ? $targetOtherPct : $basePct;
+                                        $isFixed = false;
+                                    } else {
+                                        $customPrice = (float) ($specificComm->doctor_service_price ?? 0);
+                                        if ($customPrice > 0) {
+                                            $doctorBasePrice = $customPrice;
+                                            $itemBaseTotal = round($doctorBasePrice * $quantity, 2);
+                                            $priceDesc = "على سعر الأساس ({$doctorBasePrice} ج)";
+                                        } else {
+                                            // إذا لم يحدد سعر أساس خاص بالخدمة في العقد، يعتمد إجمالي ما دفعه المريض في الفاتورة للبند
+                                            $itemBaseTotal = (float) $item->total_price;
+                                            $doctorBasePrice = $quantity > 0 ? round($itemBaseTotal / $quantity, 2) : $itemBaseTotal;
+                                            $priceDesc = "من إجمالي الفاتورة ({$itemBaseTotal} ج)";
+                                        }
 
-                                    // تحديد نسبة ما بعد التارجت للخدمة
-                                    $elevatedPct = ($specificComm->target_commission_value !== null && (float) $specificComm->target_commission_value > 0)
-                                        ? (float) $specificComm->target_commission_value
-                                        : ($isLaser
-                                            ? (float) ($contract->target_achieved_laser_percentage ?? $basePct)
-                                            : (float) ($contract->target_achieved_other_percentage ?? $basePct));
+                                        $isLaser = (bool) $specificComm->is_laser;
+                                        $basePct = (float) $specificComm->commission_value;
+                                        $isFixed = ($specificComm->commission_type === CommissionTypeEnum::FIXED);
 
-                                    if ($elevatedPct <= 0) {
-                                        $elevatedPct = $basePct;
+                                        // تحديد نسبة ما بعد التارجت للخدمة
+                                        $elevatedPct = ($specificComm->target_commission_value !== null && (float) $specificComm->target_commission_value > 0)
+                                            ? (float) $specificComm->target_commission_value
+                                            : ($isLaser
+                                                ? (float) ($contract->target_achieved_laser_percentage ?? $basePct)
+                                                : (float) ($contract->target_achieved_other_percentage ?? $basePct));
+
+                                        if ($elevatedPct <= 0) {
+                                            $elevatedPct = $basePct;
+                                        }
                                     }
 
                                     $itemComm = 0;
                                     $calcDescription = '';
 
-                                    if ($specificComm->commission_type === CommissionTypeEnum::FIXED) {
+                                    if ($isFixed) {
                                         $val = (float) $specificComm->commission_value;
                                         $itemComm = $quantity * $val;
                                         $calcDescription = "عمولة ثابتة ({$quantity} × {$val} ج) لخدمة {$service->name}";
+                                        if ($benchmarkType === TargetTypeEnum::DOCTOR_INCOME) {
+                                            $accumulatedBenchmark += $itemComm;
+                                        }
                                     } else {
                                         // تتبع كسر التارجت
                                         if ($benchmarkType === TargetTypeEnum::CLINIC_REVENUE) {
@@ -563,7 +650,7 @@ class PayrollService
                                             if ($prevBenchmark >= $targetThreshold) {
                                                 // البند تم بالكامل بعد كسر التارجت
                                                 $itemComm = $itemBaseTotal * ($elevatedPct / 100);
-                                                $calcDescription = "نسبة ترقية بعد التارجت ({$elevatedPct}%) لخدمة {$service->name} على سعر الأساس ({$doctorBasePrice} ج)";
+                                                $calcDescription = "نسبة ترقية بعد التارجت ({$elevatedPct}%) لخدمة {$service->name} {$priceDesc}";
                                             } elseif ($accumulatedBenchmark > $targetThreshold) {
                                                 // الفاتورة التي كُسر فيها التارجت (مجزأة)
                                                 $itemPrice = max(0.01, (float) $item->total_price);
@@ -574,11 +661,11 @@ class PayrollService
                                                 $commAfter = ($itemBaseTotal * $afterRatio) * ($elevatedPct / 100);
                                                 $itemComm = $commBefore + $commAfter;
 
-                                                $calcDescription = "نسبة مجزأة (قبل {$basePct}% + بعد {$elevatedPct}%) لخدمة {$service->name} على سعر الأساس ({$doctorBasePrice} ج)";
+                                                $calcDescription = "نسبة مجزأة (قبل {$basePct}% + بعد {$elevatedPct}%) لخدمة {$service->name} {$priceDesc}";
                                             } else {
                                                 // قبل كسر التارجت
                                                 $itemComm = $itemBaseTotal * ($basePct / 100);
-                                                $calcDescription = "نسبة أساسية قبل التارجت ({$basePct}%) لخدمة {$service->name} على سعر الأساس ({$doctorBasePrice} ج)";
+                                                $calcDescription = "نسبة أساسية قبل التارجت ({$basePct}%) لخدمة {$service->name} {$priceDesc}";
                                             }
                                         } else {
                                             // DOCTOR_INCOME
@@ -588,7 +675,7 @@ class PayrollService
 
                                             if ($prevBenchmark >= $targetThreshold) {
                                                 $itemComm = $itemBaseTotal * ($elevatedPct / 100);
-                                                $calcDescription = "نسبة ترقية بعد التارجت ({$elevatedPct}%) لخدمة {$service->name} على سعر الأساس ({$doctorBasePrice} ج)";
+                                                $calcDescription = "نسبة ترقية بعد التارجت ({$elevatedPct}%) لخدمة {$service->name} {$priceDesc}";
                                             } elseif ($accumulatedBenchmark > $targetThreshold) {
                                                 $denom = max(0.01, $itemBaseComm);
                                                 $beforeRatio = min(1, max(0, ($targetThreshold - $prevBenchmark) / $denom));
@@ -598,10 +685,10 @@ class PayrollService
                                                 $commAfter = ($itemBaseTotal * $afterRatio) * ($elevatedPct / 100);
                                                 $itemComm = $commBefore + $commAfter;
 
-                                                $calcDescription = "نسبة مجزأة (قبل {$basePct}% + بعد {$elevatedPct}%) لخدمة {$service->name} على سعر الأساس ({$doctorBasePrice} ج)";
+                                                $calcDescription = "نسبة مجزأة (قبل {$basePct}% + بعد {$elevatedPct}%) لخدمة {$service->name} {$priceDesc}";
                                             } else {
                                                 $itemComm = $itemBaseComm;
-                                                $calcDescription = "نسبة أساسية قبل التارجت ({$basePct}%) لخدمة {$service->name} على سعر الأساس ({$doctorBasePrice} ج)";
+                                                $calcDescription = "نسبة أساسية قبل التارجت ({$basePct}%) لخدمة {$service->name} {$priceDesc}";
                                             }
                                         }
                                     }
@@ -622,7 +709,9 @@ class PayrollService
                                                 'invoice_number' => $inv->invoice_number,
                                                 'quantity' => $quantity,
                                                 'doctor_service_price' => $doctorBasePrice,
+                                                'commission_value' => (float) ($specificComm ? $specificComm->commission_value : $basePct),
                                                 'is_laser' => $isLaser,
+                                                'is_general_other' => $isGeneralOtherService,
                                             ],
                                         ];
                                     }
@@ -646,53 +735,6 @@ class PayrollService
 
             // دمج بنود عمولات الخدمات
             $itemsToCreate = array_merge($itemsToCreate, $serviceCommissionItems);
-
-            // 5. عمولات التمريض (جلسات الأجهزة + مبيعات الأدوية والمستلزمات)
-            // $deviceSessionsCount = 0;
-            // $deviceCommissionsAmount = 0;
-            // $productSalesTotal = 0;
-            // $productCommissionsAmount = 0;
-
-            // if ($contract && ($contract->contract_type === ContractTypeEnum::NURSE || (float) $contract->device_session_commission > 0 || (float) $contract->medication_sales_percentage > 0)) {
-            //     $nurseInvoices = Invoice::with(['items.service'])
-            //         ->where('nurse_id', $userId)
-            //         ->whereBetween('created_at', [$startDate, $endDate])
-            //         ->where('status', '!=', InvoiceStatusEnum::CANCELLED->value)
-            //         ->get();
-
-            //     $deviceRate = (float) $contract->device_session_commission;
-            //     $medicationPct = (float) $contract->medication_sales_percentage;
-
-            //     foreach ($nurseInvoices as $inv) {
-            //         foreach ($inv->items as $item) {
-            //             if ($item->item_type === 'service' && $item->service && $item->service->type === ServiceTypeEnum::DEVICE) {
-            //                 $deviceSessionsCount += (int) $item->quantity;
-            //             } elseif ($item->item_type === 'product') {
-            //                 $productSalesTotal += (float) $item->total_price;
-            //             }
-            //         }
-            //     }
-
-            //     if ($deviceSessionsCount > 0 && $deviceRate > 0) {
-            //         $deviceCommissionsAmount = round($deviceSessionsCount * $deviceRate, 2);
-            //         $itemsToCreate[] = [
-            //             'type' => 'device_commission',
-            //             'description' => "عمولة جلسات أجهزة تمريض ({$deviceSessionsCount} جلسة × {$deviceRate} ج)",
-            //             'amount' => $deviceCommissionsAmount,
-            //             'is_addition' => true,
-            //         ];
-            //     }
-
-            //     if ($productSalesTotal > 0 && $medicationPct > 0) {
-            //         $productCommissionsAmount = round($productSalesTotal * ($medicationPct / 100), 2);
-            //         $itemsToCreate[] = [
-            //             'type' => 'product_commission',
-            //             'description' => "عمولة مبيعات أدوية ومستلزمات ({$medicationPct}% من مبيعات {$productSalesTotal} ج)",
-            //             'amount' => $productCommissionsAmount,
-            //             'is_addition' => true,
-            //         ];
-            //     }
-            // }
 
             // 5. عمولات التمريض (جلسات الأجهزة + مبيعات الأدوية والمستلزمات)
             $deviceSessionsCount = 0;

@@ -58,7 +58,13 @@ class StoreInvoiceRequest extends FormRequest
             ],
             'items.*.service_items_ids.*' => [
                 'integer',
-                'exists:items,id'
+                function ($attribute, $value, $fail) {
+                    $existsInServiceItems = \Illuminate\Support\Facades\DB::table('service_items')->where('id', $value)->exists();
+                    $existsInItems = \Illuminate\Support\Facades\DB::table('items')->where('id', $value)->exists();
+                    if (!$existsInServiceItems && !$existsInItems) {
+                        $fail('أحد الأصناف أو خيارات الخدمة المحددة غير موجود في المخزن أو في قائمة الخدمة.');
+                    }
+                }
             ],
             'items.*.product_id' => [
                 'required_if:items.*.item_type,product',

@@ -57,24 +57,27 @@ class InvoiceItem extends Model
             return collect();
         }
 
+        $service = null;
         if ($this->relationLoaded('service') && $this->service && $this->service->relationLoaded('items')) {
-            $matchingItems = $this->service->items->filter(function ($item) use ($ids) {
-                return in_array($item->id, $ids) || (isset($item->pivot->id) && in_array($item->pivot->id, $ids));
-            })->values();
-            if ($matchingItems->isNotEmpty()) {
-                return $matchingItems;
-            }
+            $service = $this->service;
+        } elseif ($this->service_id) {
+            $service = $this->relationLoaded('service') ? $this->service : Service::with('items')->find($this->service_id);
         }
 
-        if ($this->service_id) {
-            $service = $this->relationLoaded('service') ? $this->service : Service::with('items')->find($this->service_id);
-            if ($service && $service->relationLoaded('items')) {
-                $matchingItems = $service->items->filter(function ($item) use ($ids) {
-                    return in_array($item->id, $ids) || (isset($item->pivot->id) && in_array($item->pivot->id, $ids));
+        if ($service && $service->relationLoaded('items')) {
+            $serviceItems = $service->items;
+            $chosenIds = array_map('intval', (array) $ids);
+            $servicePivotIds = $serviceItems->pluck('pivot.id')->filter()->map(fn($id) => (int)$id)->all();
+
+            $pivotMatches = array_intersect($chosenIds, $servicePivotIds);
+            if (!empty($pivotMatches)) {
+                return $serviceItems->filter(function ($item) use ($chosenIds) {
+                    return isset($item->pivot->id) && in_array((int) $item->pivot->id, $chosenIds);
                 })->values();
-                if ($matchingItems->isNotEmpty()) {
-                    return $matchingItems;
-                }
+            } else {
+                return $serviceItems->filter(function ($item) use ($chosenIds) {
+                    return in_array((int) $item->id, $chosenIds);
+                })->values();
             }
         }
 

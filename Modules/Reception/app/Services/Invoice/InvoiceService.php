@@ -169,10 +169,21 @@ class InvoiceService
 
                         $serviceItems = $service->items;
                         if ($chosenItemsIds !== null) {
-                            $serviceItems = $serviceItems->filter(function ($product) use ($chosenItemsIds) {
-                                return in_array($product->id, (array) $chosenItemsIds)
-                                    || (isset($product->pivot->id) && in_array($product->pivot->id, (array) $chosenItemsIds));
-                            })->values();
+                            $chosenIds = array_map('intval', (array) $chosenItemsIds);
+                            $servicePivotIds = $serviceItems->pluck('pivot.id')->filter()->map(fn($id) => (int)$id)->all();
+
+                            $pivotMatches = array_intersect($chosenIds, $servicePivotIds);
+                            if (!empty($pivotMatches)) {
+                                // إذا تطابقت المدخلات مع خيارات الخدمة (service_item_id / pivot->id)، نعتمد الفلترة بالـ pivot->id حصراً
+                                $serviceItems = $serviceItems->filter(function ($product) use ($chosenIds) {
+                                    return isset($product->pivot->id) && in_array((int) $product->pivot->id, $chosenIds);
+                                })->values();
+                            } else {
+                                // خلاف ذلك نفلتر بمعرّف الصنف في المخزن (items.id)
+                                $serviceItems = $serviceItems->filter(function ($product) use ($chosenIds) {
+                                    return in_array((int) $product->id, $chosenIds);
+                                })->values();
+                            }
                         }
 
                         $itemsTotalPrice = 0;
@@ -192,7 +203,7 @@ class InvoiceService
                                 : ((float) $inventoryItem->selling_price * $qtyPerService);
 
                             $itemsTotalPrice += $itemPrice;
-                            $consumedIds[] = $product->id;
+                            $consumedIds[] = isset($product->pivot->id) ? (int) $product->pivot->id : (int) $product->id;
 
                             $serviceItemsToDeduct[] = [
                                 'product_id' => $product->id,

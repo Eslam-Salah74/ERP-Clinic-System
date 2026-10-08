@@ -34,9 +34,27 @@ class StoreAppointmentRequest extends FormRequest
             ],
             'service_id'       => ['required', 'exists:services,id'],
             'service_items_ids' => ['nullable', 'array'],
-            'service_items_ids.*' => ['integer', 'exists:items,id'],
+            'service_items_ids.*' => [
+                'integer',
+                function ($attribute, $value, $fail) {
+                    $existsInServiceItems = \Illuminate\Support\Facades\DB::table('service_items')->where('id', $value)->exists();
+                    $existsInItems = \Illuminate\Support\Facades\DB::table('items')->where('id', $value)->exists();
+                    if (!$existsInServiceItems && !$existsInItems) {
+                        $fail('أحد الأصناف أو خيارات الخدمة المحددة غير موجود.');
+                    }
+                }
+            ],
             'serviceitemsids'  => ['nullable', 'array'],
-            'serviceitemsids.*' => ['integer', 'exists:items,id'],
+            'serviceitemsids.*' => [
+                'integer',
+                function ($attribute, $value, $fail) {
+                    $existsInServiceItems = \Illuminate\Support\Facades\DB::table('service_items')->where('id', $value)->exists();
+                    $existsInItems = \Illuminate\Support\Facades\DB::table('items')->where('id', $value)->exists();
+                    if (!$existsInServiceItems && !$existsInItems) {
+                        $fail('أحد الأصناف أو خيارات الخدمة المحددة غير موجود.');
+                    }
+                }
+            ],
             'appointment_date' => ['required', 'date'],
             'visit_type'       => ['nullable', new Enum(VisitTypeEnum::class)],
             'status'           => ['nullable', new Enum(AppointmentStatusEnum::class)],

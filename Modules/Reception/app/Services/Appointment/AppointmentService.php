@@ -89,7 +89,7 @@ class AppointmentService
         } elseif (!empty($validated['service_id'])) {
             $service = Service::with('items')->find($validated['service_id']);
             $validated['service_items_ids'] = $service
-                ? $service->items->pluck('id')->values()->toArray()
+                ? $service->items->map(fn($item) => (int) ($item->pivot->id ?? $item->id))->values()->toArray()
                 : [];
         } else {
             $validated['service_items_ids'] = [];
@@ -125,7 +125,7 @@ class AppointmentService
         } elseif (isset($validated['service_id']) && $validated['service_id'] != $record->service_id) {
             $service = Service::with('items')->find($validated['service_id']);
             $validated['service_items_ids'] = $service
-                ? $service->items->pluck('id')->values()->toArray()
+                ? $service->items->map(fn($item) => (int) ($item->pivot->id ?? $item->id))->values()->toArray()
                 : [];
         }
         unset($validated['serviceitemsids']);
