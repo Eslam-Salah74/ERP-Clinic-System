@@ -241,6 +241,10 @@ class InvoiceService
                         if ($requestedQty > (float) $balance->remaining_quantity) {
                             throw new \Exception("الرصيد المتبقي للبند ({$balance->remaining_quantity}) غير كافٍ لاستهلاك ({$requestedQty}).");
                         }
+                        $limitError = \Modules\Reception\Services\PatientPackage\PatientPackageService::checkUnpaidConsumptionLimit($balance, $requestedQty);
+                        if ($limitError) {
+                            throw new \Exception($limitError);
+                        }
                         $servTitle = $balance->custom_name ?? ($balance->service ? $balance->service->name : ($balance->product ? $balance->product->name : 'باقة'));
                         $itemName = 'استهلاك باقة: ' . $servTitle;
                         $unitPrice = 0.00; // مجانية في فاتورة اليوم لأنها مسددة أو مقيدة على الباقة

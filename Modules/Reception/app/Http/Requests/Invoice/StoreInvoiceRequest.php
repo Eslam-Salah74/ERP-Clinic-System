@@ -137,6 +137,12 @@ class StoreInvoiceRequest extends FormRequest
                             $name = $balance->custom_name ?? ($balance->service ? $balance->service->name : 'الرصيد');
                             $validator->errors()->add("items.{$index}.quantity", "الرصيد المتبقي للبند ({$name}) هو ({$balance->remaining_quantity})، لا يمكن استهلاك ({$requestedQty}).");
                         }
+
+                        // التحقق من حد الاستهلاك المسموح به في ظل وجود مديونية متبقية
+                        $limitError = \Modules\Reception\Services\PatientPackage\PatientPackageService::checkUnpaidConsumptionLimit($balance, $requestedQty);
+                        if ($limitError) {
+                            $validator->errors()->add("items.{$index}.quantity", $limitError);
+                        }
                     }
                 } elseif ($itemType === 'package_debt_payment' && !empty($item['patient_package_id'])) {
                     $pkg = \Modules\Reception\Models\PatientPackage::find($item['patient_package_id']);

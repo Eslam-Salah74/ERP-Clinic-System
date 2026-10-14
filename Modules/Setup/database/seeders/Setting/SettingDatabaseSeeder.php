@@ -50,6 +50,30 @@ class SettingDatabaseSeeder extends Seeder
                 'display_name' => 'حد تنبيه انخفاض المخزون للأصناف',
                 'type' => 'number',
             ],
+            [
+                'key' => 'package_unpaid_consumption_limit_sessions',
+                'value' => '70',
+                'display_name' => 'نسبة استهلاك باقات الجلسات المسموحة قبل سداد المتبقي (%)',
+                'type' => 'number',
+            ],
+            [
+                'key' => 'package_unpaid_consumption_limit_pulses',
+                'value' => '70',
+                'display_name' => 'نسبة استهلاك باقات النبضات المسموحة قبل سداد المتبقي (%)',
+                'type' => 'number',
+            ],
+            [
+                'key' => 'package_unpaid_consumption_limit_units_volume',
+                'value' => '70',
+                'display_name' => 'نسبة استهلاك باقات الكميات/الملي المسموحة قبل سداد المتبقي (%)',
+                'type' => 'number',
+            ],
+            [
+                'key' => 'package_unpaid_consumption_limit_mixed',
+                'value' => '70',
+                'display_name' => 'نسبة استهلاك الباقات المشتركة المسموحة قبل سداد المتبقي (%)',
+                'type' => 'number',
+            ],
         ];
 
         foreach ($settings as $setting) {

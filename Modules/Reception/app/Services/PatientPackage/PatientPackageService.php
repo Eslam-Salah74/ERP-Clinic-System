@@ -14,6 +14,7 @@ use Modules\Reception\Models\PatientPackage;
 use Modules\Reception\Models\PatientPackageBalance;
 use Modules\Reception\Services\Invoice\InvoiceService;
 use Modules\Setup\Models\Package;
+use Modules\Setup\Models\Setting;
 
 class PatientPackageService
 {
@@ -155,6 +156,12 @@ class PatientPackageService
             return API::newInstance()->isError("الرصيد المتبقي للبند ({$balance->remaining_quantity}) غير كافٍ لاستهلاك ({$qty}).")->build();
         }
 
+        // التحقق من سقف الاستهلاك المسموح به في ظل وجود مديونية متبقية
+        $limitError = self::checkUnpaidConsumptionLimit($balance, $qty);
+        if ($limitError) {
+            return API::newInstance()->isError($limitError)->build();
+        }
+
         // إنشاء فاتورة جلسة بصافي 0 ج للخدمة المستهلكة من الباقة مع إثبات تنفيذ الطبيب
         $invoiceRequestData = [
             'patient_id' => $patientPackage->patient_id,
@@ -255,5 +262,71 @@ class PatientPackageService
             ->isOk('Patient active packages retrieved')
             ->setData(PatientPackageResource::collection($packages))
             ->build();
+    }
+
+    /**
+     * التحقق من الحد الأقصى لاستهلاك الباقة في حال وجود مديونية متبقية
+     */
+    public static function checkUnpaidConsumptionLimit(PatientPackageBalance $balance, float $requestedQty): ?string
+    {
+        $patientPackage = $balance->patientPackage;
+        if (!$patientPackage) {
+            return null;
+        }
+
+        $remainingAmount = (float) $patientPackage->remaining_amount;
+        // إذا كانت الباقة مسددة بالكامل، لا يوجد أي حظر
+        if ($remainingAmount <= 0) {
+            return null;
+        }
+
+        $package = $patientPackage->package;
+        $packageType = $package?->type instanceof \BackedEnum
+            ? $package->type->value
+            : ($package?->type ?? 'sessions');
+
+        $settingKey = match ($packageType) {
+            'pulses' => 'package_unpaid_consumption_limit_pulses',
+            'units_volume' => 'package_unpaid_consumption_limit_units_volume',
+            'mixed' => 'package_unpaid_consumption_limit_mixed',
+            default => 'package_unpaid_consumption_limit_sessions',
+        };
+
+        $limitVal = Setting::where('key', $settingKey)->value('value');
+        if ($limitVal === null || !is_numeric($limitVal)) {
+            $limitVal = 70;
+        }
+
+        $maxAllowedPct = (float) $limitVal;
+
+        // إجمالي كميات الباقة والمستهلك منها
+        $totalPackageQty = (float) $patientPackage->balances()->sum('total_quantity');
+        $currentConsumedQty = (float) $patientPackage->balances()->sum('consumed_quantity');
+        $newTotalConsumed = $currentConsumedQty + $requestedQty;
+
+        $overallPct = $totalPackageQty > 0 ? ($newTotalConsumed / $totalPackageQty) * 100 : 0;
+        $currentPct = $totalPackageQty > 0 ? ($currentConsumedQty / $totalPackageQty) * 100 : 0;
+
+        // فحص نسبة البند المحدد
+        $balanceTotal = (float) $balance->total_quantity;
+        $balanceConsumed = (float) $balance->consumed_quantity + $requestedQty;
+        $balancePct = $balanceTotal > 0 ? ($balanceConsumed / $balanceTotal) * 100 : 0;
+        $currentBalancePct = $balanceTotal > 0 ? ((float) $balance->consumed_quantity / $balanceTotal) * 100 : 0;
+
+        $effectiveConsumptionPct = max($overallPct, $balancePct);
+        $effectiveCurrentPct = max($currentPct, $currentBalancePct);
+
+        if ($effectiveConsumptionPct > $maxAllowedPct || $effectiveCurrentPct >= $maxAllowedPct) {
+            $remainingFormatted = number_format($remainingAmount, 2);
+            $typeNameArabic = match ($packageType) {
+                'pulses' => 'النبضات',
+                'units_volume' => 'الكميات/الملي',
+                'mixed' => 'المشتركة',
+                default => 'الجلسات',
+            };
+            return "عذراً، لقد تم الوصول إلى الحد المسموح به لاستهلاك باقة ({$typeNameArabic}) والمحدد بـ ({$maxAllowedPct}%) في ظل وجود متبقٍ غير مسدد. يجب سداد باقي المبلغ المتبقي عليك وقدره ({$remainingFormatted} ج) دفعة واحدة قبل استهلاك مزيد من الرصيد.";
+        }
+
+        return null;
     }
 }

@@ -133,6 +133,18 @@ class PayrollService
 
         foreach ($users as $user) {
             try {
+                // فحص إذا كان الموظف ليس لديه عقد أو لم يبدأ بعد خلال هذا الشهر
+                $c = $user->activeContract;
+                if ($c && $c->start_date && \Carbon\Carbon::parse($c->start_date)->startOfDay()->gt($endDate)) {
+                    continue; // عقده سيبدأ في شهر مستقبلي
+                }
+                if ($c && $c->end_date && \Carbon\Carbon::parse($c->end_date)->endOfDay()->lt($startDate)) {
+                    continue; // عقده انتهى قبل بداية هذا الشهر
+                }
+                if (!$c && $user->created_at && \Carbon\Carbon::parse($user->created_at)->startOfDay()->gt($endDate)) {
+                    continue; // تم إنشاء حسابه بعد هذا الشهر
+                }
+
                 $overlappingPaid = Payroll::where('user_id', $user->id)
                     ->where('status', PayrollStatusEnum::PAID)
                     ->where(function ($query) use ($formattedStart, $formattedEnd) {
@@ -184,17 +196,42 @@ class PayrollService
                 $endDate = Carbon::createFromFormat('Y-m', $month)->endOfMonth()->endOfDay();
             }
 
-            $formattedStart = $startDate->format('Y-m-d');
-            $formattedEnd = $endDate->format('Y-m-d');
+            // تحديد الفترة الفعلية المستحقة للموظف خلال هذا الشهر
+            // (بمراعاة تاريخ بداية ونهاية العقد، وتاريخ تعيين الموظف)
+            $effectiveStart = clone $startDate;
+            $effectiveEnd = clone $endDate;
+
+            if ($contract && $contract->start_date) {
+                $cStart = Carbon::parse($contract->start_date)->startOfDay();
+                if ($cStart->gt($effectiveStart)) {
+                    $effectiveStart = $cStart;
+                }
+            } elseif ($user->created_at && Carbon::parse($user->created_at)->startOfDay()->gt($effectiveStart)) {
+                $effectiveStart = Carbon::parse($user->created_at)->startOfDay();
+            }
+
+            if ($contract && $contract->end_date) {
+                $cEnd = Carbon::parse($contract->end_date)->endOfDay();
+                if ($cEnd->lt($effectiveEnd)) {
+                    $effectiveEnd = $cEnd;
+                }
+            }
+
+            if ($effectiveStart->gt($effectiveEnd)) {
+                throw new \Exception("الموظف {$user->name} ليس لديه فترة عمل نشطة أو عقد سارٍ خلال هذه الفترة المحددة.");
+            }
+
+            $formattedStart = $effectiveStart->format('Y-m-d');
+            $formattedEnd = $effectiveEnd->format('Y-m-d');
 
             // 1. الراتب الأساسي (يؤخذ من جدول المستخدمين مع دعم التوزيع النسبي للأيام)
             $userBasicSalary = (float) ($user->basic_salary ?? 0);
             $daysInMonth = $startDate->daysInMonth;
-            $periodDays = $startDate->diffInDays($endDate) + 1;
+            $periodDays = $effectiveStart->diffInDays($effectiveEnd) + 1;
 
             if (isset($extra['basic_salary']) && is_numeric($extra['basic_salary'])) {
                 $basicSalary = (float) $extra['basic_salary'];
-            } elseif ($periodDays >= $daysInMonth || $periodDays >= 28) {
+            } elseif ($periodDays >= $daysInMonth) {
                 $basicSalary = $userBasicSalary;
             } else {
                 $basicSalary = round(($userBasicSalary / $daysInMonth) * $periodDays, 2);
@@ -202,7 +239,7 @@ class PayrollService
 
             // 2. إحصائيات الشفتات وساعات العمل والتأخيرات
             $shifts = Shift::where('user_id', $userId)
-                ->whereBetween('start_time', [$startDate, $endDate])
+                ->whereBetween('start_time', [$effectiveStart, $effectiveEnd])
                 ->get();
 
             $shiftsCount = $shifts->count();
@@ -305,7 +342,7 @@ class PayrollService
 
             $doctorInvoices = Invoice::with(['items.service', 'patient'])
                 ->where('doctor_id', $userId)
-                ->whereBetween('created_at', [$startDate, $endDate])
+                ->whereBetween('created_at', [$effectiveStart, $effectiveEnd])
                 ->where('status', '!=', InvoiceStatusEnum::CANCELLED->value)
                 ->get();
 
@@ -760,7 +797,7 @@ class PayrollService
                 if ($deviceRate > 0) {
                     $nurseDeviceInvoices = Invoice::with(['items.service', 'doctor.activeContract.serviceCommissions'])
                         ->where('nurse_id', $userId)
-                        ->whereBetween('created_at', [$startDate, $endDate])
+                        ->whereBetween('created_at', [$effectiveStart, $effectiveEnd])
                         ->where('status', '!=', InvoiceStatusEnum::CANCELLED->value)
                         ->get();
 
@@ -816,9 +853,9 @@ class PayrollService
 
                 // --- ثانياً: عمولة المنتجات والأدوية (تُحسب تلقائياً من إجمالي مبيعات المركز بدون شرط nurse_id) ---
                 if ($commValue > 0) {
-                    // جلب جميع مبيعات المنتجات في المركز خلال الفترة
+                    // جلب جميع مبيعات المنتجات في المركز خلال الفترة الفعلية للموظف
                     $productInvoices = Invoice::with('items')
-                        ->whereBetween('created_at', [$startDate, $endDate])
+                        ->whereBetween('created_at', [$effectiveStart, $effectiveEnd])
                         ->where('status', '!=', InvoiceStatusEnum::CANCELLED->value)
                         ->get();
 
@@ -871,7 +908,7 @@ class PayrollService
                                 $query->whereHas('service', fn($q) => $q->where('department_id', $deptId))
                                       ->orWhereHas('package', fn($q) => $q->where('department_id', $deptId));
                             })
-                            ->whereHas('invoice', fn($q) => $q->whereBetween('created_at', [$startDate, $endDate])->where('status', '!=', InvoiceStatusEnum::CANCELLED->value))
+                            ->whereHas('invoice', fn($q) => $q->whereBetween('created_at', [$effectiveStart, $effectiveEnd])->where('status', '!=', InvoiceStatusEnum::CANCELLED->value))
                             ->sum('total_price');
 
                         if ($deptRevenue > 0) {
