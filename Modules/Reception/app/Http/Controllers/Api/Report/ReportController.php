@@ -7,6 +7,7 @@ use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Modules\Reception\Http\Requests\Report\DateRangeReportRequest;
 use Modules\Reception\Http\Requests\Report\ShiftSafeReportRequest;
+use Modules\Reception\Services\Report\DashboardHomeReportService;
 use Modules\Reception\Services\Report\DepartmentReportService;
 use Modules\Reception\Services\Report\DeviceReportService;
 use Modules\Reception\Services\Report\DoctorReportService;
@@ -23,6 +24,7 @@ class ReportController extends Controller implements HasMiddleware
         protected DeviceReportService $deviceService,
         protected ExpensePayrollReportService $expensePayrollService,
         protected FinancialReportService $financialService,
+        protected DashboardHomeReportService $dashboardHomeService,
     ) {}
 
     public static function middleware(): array
@@ -30,14 +32,25 @@ class ReportController extends Controller implements HasMiddleware
         return [
             new Middleware('permission:read reports|manage shifts', only: ['dailySafe', 'shiftSafe']),
             new Middleware('permission:read reports', only: [
+                'homeSummary',
                 'financialSummary',
                 'departments',
                 'doctors',
                 'devices',
+                'singleDevice',
                 'expensesAndSalaries',
                 'transactionsLedger',
             ]),
         ];
+    }
+
+    /**
+     * 0. تقرير لوحة تحكم الصفحة الرئيسية (Home Dashboard)
+     * GET /api/v1/reports/home-summary
+     */
+    public function homeSummary(DateRangeReportRequest $request)
+    {
+        return $this->dashboardHomeService->getHomeSummary($request);
     }
 
     /**
@@ -60,7 +73,7 @@ class ReportController extends Controller implements HasMiddleware
     }
 
     /**
-     * 2. التقرير المالي الشامل والأرباح والخسائر للمركز (P&L) - كسبنا كام آخر الشهر
+     * 2. التقرير المالي الشامل والأرباح والخسائر للمركز (P&L & Cash Flow)
      * GET /api/v1/reports/financial-summary
      */
     public function financialSummary(DateRangeReportRequest $request)
@@ -92,6 +105,16 @@ class ReportController extends Controller implements HasMiddleware
      */
     public function devices(DateRangeReportRequest $request)
     {
+        return $this->deviceService->getDevicesReport($request);
+    }
+
+    /**
+     * تقرير تفصيلي لجهاز محدد بالمعرف
+     * GET /api/v1/reports/devices/{id}
+     */
+    public function singleDevice($id, DateRangeReportRequest $request)
+    {
+        $request->merge(['device_id' => $id]);
         return $this->deviceService->getDevicesReport($request);
     }
 

@@ -2,9 +2,13 @@
 
 namespace Modules\Reception\Services\Invoice;
 
+use App\Enums\UserType;
+use App\Models\User;
 use App\Support\API;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Modules\Inventory\Models\Item;
 use Modules\Reception\Enums\AppointmentStatusEnum;
 use Modules\Reception\Enums\InvoiceStatusEnum;
@@ -18,6 +22,7 @@ use Modules\Reception\Models\Invoice;
 use Modules\Reception\Models\Patient;
 use Modules\Reception\Models\Shift;
 use Modules\Reception\Models\Transaction;
+use Modules\Reception\Notifications\InvoiceDiscountAppliedNotification;
 use Modules\Setup\Models\Service;
 use Modules\Setup\Models\Setting;
 use Modules\Setup\Models\Package;
@@ -457,6 +462,11 @@ class InvoiceService
                     ]);
                 }
 
+                // إرسال إشعار في حال تم تطبيق خصم على الفاتورة
+                if ($discount > 0) {
+                    $this->sendDiscountNotification($invoice, (float) $discount);
+                }
+
                 return API::newInstance()->isCreated('تم إنشاء الفاتورة بنجاح.')
                     ->setData(new InvoiceResource($invoice->load(['items.service.items', 'patient', 'doctor', 'nurse', 'creator', 'shift'])))
                     ->build();
@@ -659,8 +669,65 @@ class InvoiceService
     public function update($id, $request)
     {
         $record = Invoice::findOrFail($id);
-        $record->update($request->validated());
+        $oldDiscount = (float) $record->discount;
+        $validated = is_array($request) ? $request : (method_exists($request, 'validated') && $request->validated() ? $request->validated() : $request->all());
+        $record->update($validated);
+
+        if (isset($validated['discount']) && (float) $validated['discount'] > 0 && (float) $validated['discount'] != $oldDiscount) {
+            $this->sendDiscountNotification($record, (float) $validated['discount']);
+        }
+
         return API::newInstance()->isOk('Updated successfully')->setData(new InvoiceResource($record->load(['items.service.items', 'patient', 'doctor', 'nurse', 'creator', 'shift'])))->build();
+    }
+
+    /**
+     * إرسال إشعار عند تطبيق خصم على الفاتورة
+     */
+    protected function sendDiscountNotification(Invoice $invoice, float $discountAmount): void
+    {
+        try {
+            if ($discountAmount <= 0) {
+                return;
+            }
+
+            $employee = Auth::user() ?? $invoice->creator;
+            $invoice->loadMissing(['patient', 'creator']);
+
+            // المستلمون: المديرون والمحاسبون ومسؤولو النظام
+            $recipients = User::where('is_active', true)
+                ->where(function ($q) {
+                    $q->whereIn('type', [UserType::ADMIN->value, UserType::ACCOUNTANT->value])
+                      ->orWhereHas('roles', function ($rq) {
+                          $rq->whereIn('name', ['admin', 'super-admin', 'Admin', 'Super Admin', 'accountant', 'Accountant']);
+                      });
+                })
+                ->get();
+
+            // إضافة الموظف القائم بالعملية ليكون على دراية بالإشعار أيضاً
+            if ($employee && !$recipients->contains('id', $employee->id)) {
+                $recipients->push($employee);
+            }
+
+            foreach ($recipients as $recipient) {
+                // منع التكرار لنفس الفاتورة والمستلم وقيمة الخصم خلال دقيقة واحدة
+                $alreadyNotified = $recipient->notifications()
+                    ->whereJsonContains('data->type', 'invoice_discount')
+                    ->whereJsonContains('data->invoice_id', $invoice->id)
+                    ->whereJsonContains('data->discount_amount', $discountAmount)
+                    ->where('created_at', '>=', Carbon::now()->subMinutes(1))
+                    ->exists();
+
+                if (!$alreadyNotified) {
+                    $recipient->notify(new InvoiceDiscountAppliedNotification(
+                        $invoice,
+                        $employee,
+                        $discountAmount
+                    ));
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::error('Failed to send invoice discount notification: ' . $e->getMessage());
+        }
     }
 
     public function destroy($id)

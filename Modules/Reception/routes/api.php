@@ -39,12 +39,14 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
 
     // منظومة التقارير المالية والإدارية الشاملة
     Route::prefix('reports')->group(function () {
+        Route::get('home-summary', [ReportController::class, 'homeSummary']);
         Route::get('daily-safe', [ReportController::class, 'dailySafe']);
         Route::get('shifts/{id}/safe', [ReportController::class, 'shiftSafe']);
         Route::get('financial-summary', [ReportController::class, 'financialSummary']);
         Route::get('departments', [ReportController::class, 'departments']);
         Route::get('doctors', [ReportController::class, 'doctors']);
         Route::get('devices', [ReportController::class, 'devices']);
+        Route::get('devices/{id}', [ReportController::class, 'singleDevice']);
         Route::get('expenses-salaries', [ReportController::class, 'expensesAndSalaries']);
         Route::get('transactions-ledger', [ReportController::class, 'transactionsLedger']);
     });

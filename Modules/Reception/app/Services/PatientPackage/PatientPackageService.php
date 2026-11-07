@@ -2,9 +2,13 @@
 
 namespace Modules\Reception\Services\PatientPackage;
 
+use App\Enums\UserType;
+use App\Models\User;
 use App\Support\API;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Modules\Reception\Enums\InvoiceTypeEnum;
 use Modules\Reception\Enums\PatientPackageStatusEnum;
 use Modules\Reception\Filters\PatientPackage\PatientPackageFilter;
@@ -12,6 +16,7 @@ use Modules\Reception\Http\Requests\Invoice\StoreInvoiceRequest;
 use Modules\Reception\Http\Resources\PatientPackage\PatientPackageResource;
 use Modules\Reception\Models\PatientPackage;
 use Modules\Reception\Models\PatientPackageBalance;
+use Modules\Reception\Notifications\UnpaidPackageConsumptionAttemptNotification;
 use Modules\Reception\Services\Invoice\InvoiceService;
 use Modules\Setup\Models\Package;
 use Modules\Setup\Models\Setting;
@@ -19,6 +24,11 @@ use Modules\Setup\Models\Setting;
 class PatientPackageService
 {
     protected $invoiceService;
+
+    /**
+     * تتبع المحاولات التي تم إرسال إشعار بها أثناء نفس الـ Request لمنع التكرار
+     */
+    protected static array $notifiedAttempts = [];
 
     public function __construct(InvoiceService $invoiceService)
     {
@@ -324,9 +334,82 @@ class PatientPackageService
                 'mixed' => 'المشتركة',
                 default => 'الجلسات',
             };
+
+            // إرسال إشعار للمديرين والموظف بمحاولة الاستهلاك في ظل وجود مديونية
+            self::sendUnpaidConsumptionAttemptNotification(
+                $patientPackage,
+                $balance,
+                $requestedQty,
+                $maxAllowedPct,
+                $effectiveConsumptionPct
+            );
+
             return "عذراً، لقد تم الوصول إلى الحد المسموح به لاستهلاك باقة ({$typeNameArabic}) والمحدد بـ ({$maxAllowedPct}%) في ظل وجود متبقٍ غير مسدد. يجب سداد باقي المبلغ المتبقي عليك وقدره ({$remainingFormatted} ج) دفعة واحدة قبل استهلاك مزيد من الرصيد.";
         }
 
         return null;
+    }
+
+    /**
+     * إرسال إشعار بمحاولة استهلاك باقة مقيدة بمديونية تجاوزت الحد المسموح به
+     */
+    public static function sendUnpaidConsumptionAttemptNotification(
+        PatientPackage $patientPackage,
+        PatientPackageBalance $balance,
+        float $requestedQty,
+        float $maxAllowedPct,
+        float $effectivePct
+    ): void {
+        try {
+            $employee = Auth::user();
+
+            // منع تكرار الإشعار في نفس الـ Request
+            $cacheKey = ($employee?->id ?? 'guest') . '_' . $patientPackage->id . '_' . $balance->id;
+            if (isset(self::$notifiedAttempts[$cacheKey])) {
+                return;
+            }
+            self::$notifiedAttempts[$cacheKey] = true;
+
+            $patientPackage->loadMissing(['patient', 'package']);
+            $balance->loadMissing(['service', 'product']);
+
+            // المستلمون: المديرون ومسؤولو النظام
+            $recipients = User::where('is_active', true)
+                ->where(function ($q) {
+                    $q->where('type', UserType::ADMIN->value)
+                      ->orWhereHas('roles', function ($rq) {
+                          $rq->whereIn('name', ['admin', 'super-admin', 'Admin', 'Super Admin']);
+                      });
+                })
+                ->get();
+
+            // إضافة الموظف القائم بالمحاولة إلى المستلمين ليكون على دراية بالإشعار
+            if ($employee && !$recipients->contains('id', $employee->id)) {
+                $recipients->push($employee);
+            }
+
+            foreach ($recipients as $recipient) {
+                // منع تكرار نفس الإشعار لنفس المستلم خلال دقيقة واحدة لتجنب التكرار
+                $alreadyNotified = $recipient->notifications()
+                    ->whereJsonContains('data->type', 'package_debt_limit')
+                    ->whereJsonContains('data->patient_package_id', $patientPackage->id)
+                    ->whereJsonContains('data->employee_id', $employee?->id)
+                    ->where('created_at', '>=', Carbon::now()->subMinutes(1))
+                    ->exists();
+
+                if (!$alreadyNotified) {
+                    $recipient->notify(new UnpaidPackageConsumptionAttemptNotification(
+                        $patientPackage,
+                        $balance,
+                        $employee,
+                        $requestedQty,
+                        $maxAllowedPct,
+                        $effectivePct
+                    ));
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::error('Failed to send unpaid package consumption attempt notification: ' . $e->getMessage());
+        }
     }
 }
