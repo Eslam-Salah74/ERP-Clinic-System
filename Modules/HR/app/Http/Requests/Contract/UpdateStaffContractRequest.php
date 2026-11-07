@@ -54,6 +54,7 @@ class UpdateStaffContractRequest extends FormRequest
             'target_bonus' => ['nullable', 'numeric', 'min:0'],
 
             'notes' => ['nullable', 'string'],
+            'commission_template_id' => ['nullable', 'exists:commission_templates,id'],
 
             'service_commissions' => ['nullable', 'array'],
             'service_commissions.*.service_id' => ['required_with:service_commissions', 'exists:services,id'],

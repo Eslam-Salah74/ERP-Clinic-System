@@ -80,6 +80,14 @@ class StaffContractResource extends JsonResource
             // العمولات المخصصة لكل خدمة
             'service_commissions' => ContractServiceCommissionResource::collection($this->whenLoaded('serviceCommissions')),
 
+            'commission_template_id' => $this->commission_template_id,
+            'commission_template' => $this->whenLoaded('commissionTemplate', function () {
+                return [
+                    'id' => $this->commissionTemplate->id,
+                    'name' => $this->commissionTemplate->name,
+                ];
+            }),
+
             'notes' => $this->notes,
             'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at?->format('Y-m-d H:i:s'),

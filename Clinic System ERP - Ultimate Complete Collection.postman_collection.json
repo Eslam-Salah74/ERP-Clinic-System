@@ -2471,6 +2471,48 @@
                                 }
                             },
                             "response": []
+                        },
+                        {
+                            "name": "Consume Session - Debt Limit Check (استهلاك جلسة باقة مع فحص مديونية المريض وإرسال إشعار)",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"patient_package_id\": 1,\n    \"service_id\": 7,\n    \"quantity\": 1,\n    \"notes\": \"محاولة استهلاك جلسة (إذا كان متبقي الحساب أكبر من الحد المسموح يتم حظر الاستهلاك وإرسال إشعار للإدارة)\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/patient-packages/consume",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "patient-packages",
+                                        "consume"
+                                    ]
+                                }
+                            },
+                            "response": []
                         }
                     ]
                 },
@@ -2851,6 +2893,47 @@
                                 "body": {
                                     "mode": "raw",
                                     "raw": "// سداد قسط أو دفعة متبقية من ثمن باقة سابقة عن طريق فاتورة رسمية تورّد للخزينة والشفت\n{\n    \"patient_id\": 1,\n    \"type\": \"direct_sale\",\n    \"payment_method\": \"cash\",\n    \"paid_amount\": 500.00,\n    \"notes\": \"سداد دفعة نقدية من متبقي باقة الليزر\",\n    \"items\": [\n        {\n            \"item_type\": \"package_debt_payment\",\n            \"patient_package_id\": 1,\n            \"price\": 500.00\n        }\n    ]\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/invoices",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "invoices"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Create Invoice - with Discount (فاتورة مع تطبيق خصم وإرسال إشعار للإدارة)",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"patient_id\": 1,\n    \"appointment_id\": null,\n    \"type\": \"session\",\n    \"payment_method\": \"cash\",\n    \"doctor_id\": 90,\n    \"discount\": 50,\n    \"paid_amount\": 250,\n    \"notes\": \"فاتورة جلسة علاجية تم فيها منح خصم 50 ج للمريض (يطلق إشعاراً آلياً للإدارة باسم الموظف والخصم)\",\n    \"items\": [\n        {\n            \"item_type\": \"service\",\n            \"service_id\": 6\n        }\n    ]\n}",
                                     "options": {
                                         "raw": {
                                             "language": "json"
@@ -3305,6 +3388,217 @@
                     ]
                 },
                 {
+                    "name": "Commission Templates (لوائح وقوالب عمولات الخدمات)",
+                    "item": [
+                        {
+                            "name": "Get Commission Templates (عرض كافة لوائح العمولات)",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/commission-templates?per_page=15",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "commission-templates"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "per_page",
+                                            "value": "15",
+                                            "description": "عدد العناصر في الصفحة (-1 لجلب الكل)"
+                                        },
+                                        {
+                                            "key": "search",
+                                            "value": "",
+                                            "disabled": true,
+                                            "description": "بحث بالاسم"
+                                        },
+                                        {
+                                            "key": "is_active",
+                                            "value": "true",
+                                            "disabled": true,
+                                            "description": "فلترة بالنشط"
+                                        },
+                                        {
+                                            "key": "department_id",
+                                            "value": "1",
+                                            "disabled": true,
+                                            "description": "فلترة بالقسم"
+                                        }
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Create Commission Template (إنشاء لائحة عمولات جديدة للخدمات)",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"عقد أخصائي جلدية وتجميل وليزر (لائحة العمولات القياسية)\",\n    \"description\": \"اللائحة القياسية المعتمدة لأطباء الجلدية والتجميل والليزر\",\n    \"department_id\": 1,\n    \"is_active\": true,\n    \"items\": [\n        {\n            \"service_id\": 7,\n            \"doctor_service_price\": 50,\n            \"is_laser\": true,\n            \"commission_type\": \"percentage\",\n            \"commission_value\": 10,\n            \"target_commission_value\": 15\n        },\n        {\n            \"service_id\": 8,\n            \"doctor_service_price\": 100,\n            \"is_laser\": true,\n            \"commission_type\": \"percentage\",\n            \"commission_value\": 10,\n            \"target_commission_value\": 15\n        },\n        {\n            \"service_id\": 6,\n            \"doctor_service_price\": 250,\n            \"is_laser\": false,\n            \"commission_type\": \"percentage\",\n            \"commission_value\": 10,\n            \"target_commission_value\": 15\n        }\n    ]\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/commission-templates",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "commission-templates"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Show Commission Template (عرض تفاصيل لائحة محددة مع بنود الخدمات)",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/commission-templates/1",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "commission-templates",
+                                        "1"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Update Commission Template (تعديل اللائحة وبنود الخدمات التابعة لها)",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "PUT",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"عقد أخصائي جلدية وتجميل وليزر (لائحة العمولات المحدثة)\",\n    \"description\": \"تحديث نسب عمولات حقن البوتوكس وجلسات الليزر\",\n    \"is_active\": true,\n    \"items\": [\n        {\n            \"service_id\": 7,\n            \"doctor_service_price\": 60,\n            \"is_laser\": true,\n            \"commission_type\": \"percentage\",\n            \"commission_value\": 12,\n            \"target_commission_value\": 18\n        },\n        {\n            \"service_id\": 8,\n            \"doctor_service_price\": 120,\n            \"is_laser\": true,\n            \"commission_type\": \"percentage\",\n            \"commission_value\": 12,\n            \"target_commission_value\": 18\n        },\n        {\n            \"service_id\": 6,\n            \"doctor_service_price\": 280,\n            \"is_laser\": false,\n            \"commission_type\": \"percentage\",\n            \"commission_value\": 12,\n            \"target_commission_value\": 18\n        }\n    ]\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/commission-templates/1",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "commission-templates",
+                                        "1"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Delete Commission Template (حذف لائحة عمولات)",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "DELETE",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/commission-templates/1",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "commission-templates",
+                                        "1"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        }
+                    ]
+                },
+                {
                     "name": "Staff Contracts & Commissions (عقود الموظفين والعمولات)",
                     "item": [
                         {
@@ -3559,7 +3853,7 @@
                             "response": []
                         },
                         {
-                            "name": "Create Contract - Dermatology & Laser (تارجت وتصعيد تلقائي للشرائح)",
+                            "name": "Create Contract - Dermatology & Laser (تارجت وتصعيد تلقائي + ربط بلائحة العمولات commission_template_id)",
                             "request": {
                                 "auth": {
                                     "type": "bearer",
@@ -3580,7 +3874,7 @@
                                 ],
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n    \"user_id\": 90,\n    \"title\": \"عقد أخصائي جلدية وتجميل وليزر\",\n    \"contract_type\": \"doctor\",\n    \"is_active\": true,\n    \"hourly_rate\": 40.00,\n    \"has_target\": true,\n    \"target_amount\": 7500.00,\n    \"target_type\": \"doctor_income\",\n    \"target_achieved_hourly_rate\": 100.00,\n    \"target_achieved_laser_percentage\": 15.00,\n    \"target_achieved_other_percentage\": 15.00,\n    \"target_bonus\":0,\n    \"service_commissions\": [\n        {\n            \"service_id\": 7,\n            \"doctor_service_price\": 50.00,\n            \"is_laser\": true,\n            \"commission_type\": \"percentage\",\n            \"commission_value\": 10.00\n        },\n        {\n            \"service_id\": 8,\n            \"doctor_service_price\": 100.00,\n            \"is_laser\": true,\n            \"commission_type\": \"percentage\",\n            \"commission_value\": 10.00\n        },\n        {\n            \"service_id\": 6,\n            \"doctor_service_price\": 250.00,\n            \"is_laser\": false,\n            \"commission_type\": \"percentage\",\n            \"commission_value\": 10.00\n        }\n    ],\n    \"notes\": \"\"\n}",
+                                    "raw": "{\n    \"user_id\": 90,\n    \"title\": \"عقد أخصائي جلدية وتجميل وليزر\",\n    \"contract_type\": \"doctor\",\n    \"is_active\": true,\n    \"hourly_rate\": 40,\n    \"has_target\": true,\n    \"target_amount\": 7500,\n    \"target_type\": \"doctor_income\",\n    \"target_achieved_hourly_rate\": 100,\n    \"target_achieved_laser_percentage\": 15,\n    \"target_achieved_other_percentage\": 15,\n    \"target_bonus\": 0,\n    \"commission_template_id\": 1,\n    \"notes\": \"تم ربط العقد بلائحة العمولات رقم 1 لاستيراد عمولات الخدمات الـ 20 تلقائياً بدون تكرار مصفوفة الخدمات\"\n}",
                                     "options": {
                                         "raw": {
                                             "language": "json"
@@ -3654,7 +3948,7 @@
                                 ],
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n    \"hourly_rate\": 50.00,\n    \"has_target\": true,\n    \"target_amount\": 8000.00,\n    \"target_achieved_hourly_rate\": 120.00,\n    \"target_achieved_laser_percentage\": 18.00,\n    \"target_achieved_other_percentage\": 22.00,\n    \"service_commissions\": [\n        {\n            \"service_id\": 2,\n            \"doctor_service_price\": 220.00,\n            \"is_laser\": true,\n            \"commission_type\": \"percentage\",\n            \"commission_value\": 12.00\n        },\n        {\n            \"service_id\": 1,\n            \"doctor_service_price\": 60.00,\n            \"is_laser\": false,\n            \"commission_type\": \"percentage\",\n            \"commission_value\": 10.00\n        }\n    ],\n    \"notes\": \"تحديث شروط العقد وسعر الساعة ونسب التارجت والخدمات\"\n}",
+                                    "raw": "{\n    \"hourly_rate\": 50,\n    \"has_target\": true,\n    \"target_amount\": 8000,\n    \"target_achieved_hourly_rate\": 120,\n    \"target_achieved_laser_percentage\": 18,\n    \"target_achieved_other_percentage\": 22,\n    \"commission_template_id\": 1,\n    \"notes\": \"تحديث شروط العقد وسعر الساعة ونسب التارجت وربطه بلائحة العمولات رقم 1\"\n}",
                                     "options": {
                                         "raw": {
                                             "language": "json"
@@ -3702,6 +3996,47 @@
                                     "path": [
                                         "contracts",
                                         "1"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Create Contract - Doctor (تخصيص يدوي استثنائي لعمولات الخدمات service_commissions)",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"user_id\": 91,\n    \"title\": \"عقد استشاري جلدية وتجميل (نسب خاصة استثنائية)\",\n    \"contract_type\": \"doctor\",\n    \"is_active\": true,\n    \"hourly_rate\": 60,\n    \"service_commissions\": [\n        {\n            \"service_id\": 7,\n            \"doctor_service_price\": 70,\n            \"is_laser\": true,\n            \"commission_type\": \"percentage\",\n            \"commission_value\": 20\n        }\n    ],\n    \"notes\": \"مثال لتخصيص يدوي لدكتور بدون استخدام قالب في حال وجود حالة خاصة\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/contracts",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "contracts"
                                     ]
                                 }
                             },
@@ -4173,8 +4508,26 @@
                             "query": [
                                 {
                                     "key": "type",
+                                    "value": "invoice_discount",
+                                    "description": "إشعارات الخصومات المطبقة على الفواتير بواسطة موظفي الاستقبال"
+                                },
+                                {
+                                    "key": "type",
+                                    "value": "package_debt_limit",
+                                    "disabled": true,
+                                    "description": "إشعارات محاولة استهلاك باقات تجاوزت مديونيتها الحد المسموح"
+                                },
+                                {
+                                    "key": "type",
                                     "value": "follow_up",
-                                    "description": "follow_up | low_stock | package_debt_limit | invoice_discount"
+                                    "disabled": true,
+                                    "description": "إشعارات تذكير المتابعات القادمة للمرضى"
+                                },
+                                {
+                                    "key": "type",
+                                    "value": "low_stock",
+                                    "disabled": true,
+                                    "description": "إشعارات تنبيهات انخفاض رصيد المخزون"
                                 }
                             ]
                         }

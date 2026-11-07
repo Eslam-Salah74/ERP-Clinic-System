@@ -4,11 +4,15 @@ use Illuminate\Support\Facades\Route;
 use Modules\HR\Http\Controllers\Api\Expense\ExpenseController;
 use Modules\HR\Http\Controllers\Api\Contract\ContractController;
 use Modules\HR\Http\Controllers\Api\Payroll\PayrollController;
+use Modules\HR\Http\Controllers\Api\CommissionTemplate\CommissionTemplateController;
 
 Route::middleware(['auth:api'])->prefix('v1')->group(function () {
     // المصروفات والنفقات
     Route::get('expenses/summary', [ExpenseController::class, 'summary']);
     Route::apiResource('expenses', ExpenseController::class);
+
+    // لوائح وقوالب عمولات الخدمات (Commission Templates)
+    Route::apiResource('commission-templates', CommissionTemplateController::class);
 
     // عقود الموظفين والعمولات (Staff Contracts)
     Route::get('contracts/user/{userId}', [ContractController::class, 'getActiveContractByUser']);

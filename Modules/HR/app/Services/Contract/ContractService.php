@@ -9,13 +9,14 @@ use Modules\HR\Filters\Contract\StaffContractFilter;
 use Modules\HR\Http\Requests\Contract\StoreStaffContractRequest;
 use Modules\HR\Http\Requests\Contract\UpdateStaffContractRequest;
 use Modules\HR\Http\Resources\Contract\StaffContractResource;
+use Modules\HR\Models\CommissionTemplate;
 use Modules\HR\Models\StaffContract;
 
 class ContractService
 {
     public function index($request, StaffContractFilter $filter)
     {
-        $data = StaffContract::with(['user', 'serviceCommissions.service'])
+        $data = StaffContract::with(['user', 'serviceCommissions.service', 'commissionTemplate'])
             ->filter($filter)
             ->latest('id')
             ->paginate(15);
@@ -31,6 +32,22 @@ class ContractService
         $validated = $request->validated();
         $serviceCommissions = $validated['service_commissions'] ?? [];
         unset($validated['service_commissions']);
+
+        if (empty($serviceCommissions) && !empty($validated['commission_template_id'])) {
+            $template = CommissionTemplate::with('items')->find($validated['commission_template_id']);
+            if ($template) {
+                foreach ($template->items as $item) {
+                    $serviceCommissions[] = [
+                        'service_id' => $item->service_id,
+                        'doctor_service_price' => $item->doctor_service_price,
+                        'is_laser' => $item->is_laser,
+                        'commission_type' => $item->commission_type instanceof \BackedEnum ? $item->commission_type->value : $item->commission_type,
+                        'commission_value' => $item->commission_value,
+                        'target_commission_value' => $item->target_commission_value,
+                    ];
+                }
+            }
+        }
 
         $commType = $validated['medication_commission_type'] ?? CommissionTypeEnum::PERCENTAGE->value;
         if ($commType === CommissionTypeEnum::FIXED->value || $commType === CommissionTypeEnum::FIXED) {
@@ -72,13 +89,13 @@ class ContractService
 
         return API::newInstance()
             ->isCreated('Contract created successfully')
-            ->setData(new StaffContractResource($contract->refresh()->load(['user', 'serviceCommissions.service'])))
+            ->setData(new StaffContractResource($contract->refresh()->load(['user', 'serviceCommissions.service', 'commissionTemplate'])))
             ->build();
     }
 
     public function show($id)
     {
-        $contract = StaffContract::with(['user', 'serviceCommissions.service'])->find($id);
+        $contract = StaffContract::with(['user', 'serviceCommissions.service', 'commissionTemplate'])->find($id);
         if (!$contract) {
             return API::newInstance()->isError('Contract not found')->build();
         }
@@ -96,6 +113,25 @@ class ContractService
         $hasCommissions = array_key_exists('service_commissions', $validated);
         $serviceCommissions = $validated['service_commissions'] ?? [];
         unset($validated['service_commissions']);
+
+        $hasTemplateId = array_key_exists('commission_template_id', $validated);
+        if ($hasTemplateId && !$hasCommissions && !empty($validated['commission_template_id'])) {
+            $template = CommissionTemplate::with('items')->find($validated['commission_template_id']);
+            if ($template) {
+                $hasCommissions = true;
+                $serviceCommissions = [];
+                foreach ($template->items as $item) {
+                    $serviceCommissions[] = [
+                        'service_id' => $item->service_id,
+                        'doctor_service_price' => $item->doctor_service_price,
+                        'is_laser' => $item->is_laser,
+                        'commission_type' => $item->commission_type instanceof \BackedEnum ? $item->commission_type->value : $item->commission_type,
+                        'commission_value' => $item->commission_value,
+                        'target_commission_value' => $item->target_commission_value,
+                    ];
+                }
+            }
+        }
 
         if (array_key_exists('medication_commission_type', $validated) || array_key_exists('medication_commission_value', $validated) || array_key_exists('medication_sales_percentage', $validated)) {
             $rawCommType = $validated['medication_commission_type'] ?? $contract->medication_commission_type;
@@ -141,7 +177,7 @@ class ContractService
 
         return API::newInstance()
             ->isOk('Contract updated successfully')
-            ->setData(new StaffContractResource($contract->refresh()->load(['user', 'serviceCommissions.service'])))
+            ->setData(new StaffContractResource($contract->refresh()->load(['user', 'serviceCommissions.service', 'commissionTemplate'])))
             ->build();
     }
 
@@ -155,7 +191,7 @@ class ContractService
 
     public function getActiveContractByUser($userId)
     {
-        $contract = StaffContract::with(['user', 'serviceCommissions.service'])
+        $contract = StaffContract::with(['user', 'serviceCommissions.service', 'commissionTemplate'])
             ->where('user_id', $userId)
             ->where('is_active', true)
             ->latest('id')

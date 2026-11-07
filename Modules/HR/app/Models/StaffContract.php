@@ -74,6 +74,11 @@ class StaffContract extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    public function commissionTemplate()
+    {
+        return $this->belongsTo(CommissionTemplate::class, 'commission_template_id');
+    }
+
     public function serviceCommissions()
     {
         return $this->hasMany(ContractServiceCommission::class, 'contract_id');
